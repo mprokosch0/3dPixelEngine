@@ -2,7 +2,7 @@
 
 # define RENDER_HPP
 
-# include "Opengl.hpp"
+# include "Shaders.hpp"
 # include <cmath>
 
 # ifndef M_PI
@@ -20,29 +20,29 @@ class Render
 		static void mouseCalculs(double posX, double posY);
 
 	private:
-		static GLuint	_vao;
-		static GLuint	_vbo;
-		static GLuint	_ebo;
 		//rotation
 		static float	_angleX;
 		static float	_angleY;
 		static float	_angleZ;
-		//center
-		static float	_centerX;
-		static float	_centerY;
-		static float	_centerZ;
 		//translation
 		static float	_tX;
 		static float	_tY;
 		static float	_tZ;
 	
 	public:
-		static void		initBuffers(std::vector<float> points, std::vector<int> faces);
-		static void		bindMatrices(void);
-		static GLuint	getVao(void);
-		static GLuint	getVbo(void);
-		static GLuint	getEbo(void);
 		static void		manageKeys(void);
+		static void		lookAt(float *mat, float eyeX, float eyeY, float eyeZ,
+                        		float centerX, float centerY, float centerZ,
+                        		float upX, float upY, float upZ);
+		static void		rotate_x(float *mat);
+		static void		rotate_y(float *mat);
+		static void		rotate_z(float *mat);
+		static void		project_points(float *mat);
+		static void		center_obj(float *mat);
+		static void		translate_obj(float *mat);
+		static void		identityMat4(float *mat);
+		static void		multiply4(float *a, float *b, float *result);
+		
 };
 
 

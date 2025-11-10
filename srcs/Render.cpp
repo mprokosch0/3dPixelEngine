@@ -1,14 +1,8 @@
 #include "Render.hpp"
 
-GLuint	Render::_vao;
-GLuint	Render::_vbo;
-GLuint	Render::_ebo;
 float	Render::_angleX = 0;
 float	Render::_angleY = 0;
 float	Render::_angleZ = 0;
-float	Render::_centerX = 0;
-float	Render::_centerY = 0;
-float	Render::_centerZ = 0;
 float	Render::_tX = 0;
 float	Render::_tY = 0;
 float	Render::_tZ = 0;
@@ -21,37 +15,37 @@ Render::~Render(void) {}
 
 //Member functions-----------------------------------------
 
-void	rotate_y(float *mat, float angle)
+void	Render::rotate_y(float *mat)
 {
-	float cosA = cosf(angle);
-	float sinA = sinf(angle);
+	float cosA = cosf(_angleX);
+	float sinA = sinf(_angleX);
 	mat[0]  = cosA; mat[1]  = 0; mat[2]  = -sinA; mat[3]  = 0;
 	mat[4]  = 0;    mat[5]  = 1; mat[6]  = 0;     mat[7]  = 0;
 	mat[8]  = sinA; mat[9]  = 0; mat[10] = cosA;  mat[11] = 0;
 	mat[12] = 0;    mat[13] = 0; mat[14] = 0;     mat[15] = 1;
 }
 
-void	rotate_x(float *mat, float angle)
+void	Render::rotate_x(float *mat)
 {
-	float cosA = cosf(angle);
-	float sinA = sinf(angle);
+	float cosA = cosf(_angleY);
+	float sinA = sinf(_angleY);
 	mat[0]  = 1; mat[1]  = 0;    mat[2]  = 0;	  mat[3]  = 0;
 	mat[4]  = 0; mat[5]  = cosA; mat[6]  = -sinA; mat[7]  = 0;
 	mat[8]  = 0; mat[9]  = sinA; mat[10] = cosA;  mat[11] = 0;
 	mat[12] = 0; mat[13] = 0;	 mat[14] = 0;     mat[15] = 1;
 }
 
-void	rotate_z(float *mat, float angle)
+void	Render::rotate_z(float *mat)
 {
-	float cosA = cosf(angle);
-	float sinA = sinf(angle);
+	float cosA = cosf(_angleZ);
+	float sinA = sinf(_angleZ);
 	mat[0]  = cosA; mat[1]  = -sinA; mat[2]  = 0; mat[3]  = 0;
 	mat[4]  = sinA; mat[5]  = cosA;  mat[6]  = 0; mat[7]  = 0;
 	mat[8]  = 0;	mat[9]  = 0;	 mat[10] = 1;  mat[11] = 0;
 	mat[12] = 0;	mat[13] = 0;	 mat[14] = 0;     mat[15] = 1;
 }
 
-void	project_points(float *mat)
+void	Render::project_points(float *mat)
 {
 	float	ratio = (float)WIDTH / (float)HEIGHT;
 	float	fov = 45.0f * (M_PI / 180);
@@ -65,7 +59,15 @@ void	project_points(float *mat)
 	mat[12] = 0;    		   mat[13] = 0;		mat[14] = -2 * far * near / (far - near);	mat[15] = 0;
 }
 
-void center_obj(float *mat)
+void Render::identityMat4(float *mat)
+{
+    mat[0] = 1;  mat[1] = 0; mat[2] = 0;  mat[3] = 0;
+    mat[4] = 0;  mat[5] = 1; mat[6] = 0;  mat[7] = 0;
+    mat[8] = 0;  mat[9] = 0; mat[10] = 1; mat[11] = 0;
+    mat[12] = 0; mat[13] = 0;mat[14] = 0; mat[15] = 1;
+}
+
+void Render::center_obj(float *mat)
 {
     mat[0] = 1;  mat[1] = 0; mat[2] = 0;  mat[3] = 0;
     mat[4] = 0;  mat[5] = 1; mat[6] = 0;  mat[7] = 0;
@@ -73,18 +75,18 @@ void center_obj(float *mat)
     mat[12] = 0; mat[13] = 0;mat[14] = -15; mat[15] = 1;
 }
 
-void translate_obj(float *mat, float tX, float tY, float tZ)
+void Render::translate_obj(float *mat)
 {
     mat[0] = 1; mat[1] = 0; mat[2] = 0; mat[3] = 0;
     mat[4] = 0; mat[5] = 1; mat[6] = 0; mat[7] = 0;
     mat[8] = 0; mat[9] = 0; mat[10] = 1; mat[11] = 0;
-    mat[12] = tX;
-    mat[13] = tY;
-    mat[14] = tZ;
+    mat[12] = _tX;
+    mat[13] = _tY;
+    mat[14] = _tZ;
     mat[15] = 1;
 }
 
-void	lookAt(float *mat, float eyeX, float eyeY, float eyeZ,
+void	Render::lookAt(float *mat, float eyeX, float eyeY, float eyeZ,
                         float centerX, float centerY, float centerZ,
                         float upX, float upY, float upZ)
 {
@@ -123,60 +125,21 @@ void	lookAt(float *mat, float eyeX, float eyeY, float eyeZ,
     mat[15] = 1;
 }
 
-void	Render::bindMatrices()
+void Render::multiply4(float *a, float *b, float *result)
 {
-	float rotX[16];
-	float rotY[16];
-	float rotZ[16];
-	float projection[16];
-	float camera[16];
-	float translate[16];
-	float center[16];
-	center_obj(center);
-	translate_obj(translate, _tX, _tY, _tZ);
-	rotate_y(rotY, _angleX);
-	rotate_x(rotX, _angleY);
-	rotate_z(rotZ, _angleZ);
-	project_points(projection);
-	lookAt(camera, 0, 0, 0,
-					0, 0, -1,
-					0.0f, 1.0f, 0.0f);
-	GLuint modelLoc = Opengl::glGetUniformLocation(Opengl::getShaderProgram(), "rotX");
-	Opengl::glUniformMatrix4fv(modelLoc, 1, GL_FALSE, rotX);
-	modelLoc = Opengl::glGetUniformLocation(Opengl::getShaderProgram(), "rotY");
-	Opengl::glUniformMatrix4fv(modelLoc, 1, GL_FALSE, rotY);
-	modelLoc = Opengl::glGetUniformLocation(Opengl::getShaderProgram(), "rotZ");
-	Opengl::glUniformMatrix4fv(modelLoc, 1, GL_FALSE, rotZ);
-	modelLoc = Opengl::glGetUniformLocation(Opengl::getShaderProgram(), "center");
-	Opengl::glUniformMatrix4fv(modelLoc, 1, GL_FALSE, center);
-	modelLoc = Opengl::glGetUniformLocation(Opengl::getShaderProgram(), "translate");
-	Opengl::glUniformMatrix4fv(modelLoc, 1, GL_FALSE, translate);
-	modelLoc = Opengl::glGetUniformLocation(Opengl::getShaderProgram(), "projection");
-	Opengl::glUniformMatrix4fv(modelLoc, 1, GL_FALSE, projection);
-	modelLoc = Opengl::glGetUniformLocation(Opengl::getShaderProgram(), "camera");
-	Opengl::glUniformMatrix4fv(modelLoc, 1, GL_FALSE, camera);
+	for (int i = 0; i < 4; ++i)
+	{
+		for (int j = 0; j < 4; ++j)
+		{
+			result[i*4 + j] =
+				a[i*4 + 0] * b[0*4 + j] +
+				a[i*4 + 1] * b[1*4 + j] +
+				a[i*4 + 2] * b[2*4 + j] +
+				a[i*4 + 3] * b[3*4 + j];
+		}
+	}
 }
 
-void	Render::initBuffers(std::vector<float> points, std::vector<int> faces)
-{
-	Opengl::glGenVertexArrays(1, &_vao);
-	Opengl::glGenBuffers(1, &_vbo);
-	Opengl::glGenBuffers(1, &_ebo);
-
-	Opengl::glBindVertexArray(_vao);
-
-	// buffer des sommets
-	Opengl::glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-	Opengl::glBufferData(GL_ARRAY_BUFFER, points.size() * sizeof(float), points.data(), GL_STATIC_DRAW);
-	Opengl::glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-	Opengl::glEnableVertexAttribArray(0);
-
-	//buffer des indices (faces)
-	Opengl::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ebo);
-	Opengl::glBufferData(GL_ELEMENT_ARRAY_BUFFER, faces.size() * sizeof(GLuint), faces.data(), GL_STATIC_DRAW);
-
-	Opengl::glBindVertexArray(0);
-}
 
 void Render::mouseCalculs(double posX, double posY)
 {
@@ -203,10 +166,10 @@ void Render::mouseCalculs(double posX, double posY)
 	_angleX += offsetX;
 	_angleY += offsetY;
 
-	if (_angleY > 89)
-		_angleY = 89;
-	else if (_angleY < -89)
-		_angleY = -89;
+	if (_angleY > 89 * (M_PI / 180))
+		_angleY = 89 * (M_PI / 180);
+	else if (_angleY < -89 * (M_PI / 180))
+		_angleY = -89 * (M_PI / 180);
 }
 
 void Render::manageKeys()
@@ -248,21 +211,4 @@ void Render::manageKeys()
     	_tZ -= speed * rightZ;
 		_tX -= speed * rightX;
     }
-}
-
-
-
-GLuint Render::getVao(void)
-{
-	return _vao;
-}
-
-GLuint Render::getVbo(void)
-{
-	return _vbo;
-}
-
-GLuint Render::getEbo(void)
-{
-	return _ebo;
 }

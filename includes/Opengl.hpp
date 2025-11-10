@@ -49,7 +49,6 @@ class Opengl
 
 	private:
 		static GLFWwindow	*_window;
-		static GLuint		_shaderProgram;
 
 
 	public:
@@ -82,9 +81,7 @@ class Opengl
 
 	public:
 		static GLFWwindow	*getWindow(void);
-		static GLuint		getShaderProgram(void);
 		static void			initiateWindow(std::string str);
-		static void			initiateShaders(void);
 };
 
 #endif
