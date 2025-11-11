@@ -78,21 +78,23 @@ void Entity::draw() const
 {
     float rotX[16], rotY[16], rotZ[16];
     float worldRotX[16], worldRotY[16], worldRotZ[16];
-    float translate[16], scale[16], temp[16], temp2[16];
+    float translate[16], wTranslate[16], scale[16];
+	float temp[16], temp2[16], locModel[16], wModel[16];;
     float projection[16], camera[16];
 	float toCenter[16], backToCenter[16];
 
     this->_shader->use();
 
 	Render::identityMat4(toCenter);
-    toCenter[12] = -this->_mesh->getCenters()[0];
-    toCenter[13] = -this->_mesh->getCenters()[1];
-    toCenter[14] = -this->_mesh->getCenters()[2];
+    toCenter[12] = -this->_mesh->getCenters()[0] - this->_pos[0];
+    toCenter[13] = -this->_mesh->getCenters()[1] - this->_pos[1];
+    toCenter[14] = -this->_mesh->getCenters()[2] - this->_pos[2];
 	Render::identityMat4(backToCenter);
-    backToCenter[12] = this->_mesh->getCenters()[0];
-    backToCenter[13] = this->_mesh->getCenters()[1];
-    backToCenter[14] = this->_mesh->getCenters()[2];
-    Render::translate_obj(translate);
+    backToCenter[12] = this->_mesh->getCenters()[0] + this->_pos[0];
+    backToCenter[13] = this->_mesh->getCenters()[1] + this->_pos[1];
+    backToCenter[14] = this->_mesh->getCenters()[2] + this->_pos[2];
+    Render::translate_obj(wTranslate);
+	Render::identityMat4(translate);
     translate[12] += _pos[0];
     translate[13] += _pos[1];
     translate[14] += _pos[2];
@@ -108,17 +110,20 @@ void Entity::draw() const
     Render::project_points(projection);
     Render::lookAt(camera, 0, 0, 0, 0, 0, -1, 0, 1, 0);
 
-	Render::multiply4(translate, backToCenter, temp);
-	Render::multiply4(scale, toCenter, temp2);
+	Render::multiply4(rotY, rotX, temp);
+	Render::multiply4(rotZ, temp, temp2);
+	Render::multiply4(toCenter, temp2, temp);
+	Render::multiply4(temp, scale, temp2);
+	Render::multiply4(temp2, backToCenter, temp);
+	Render::multiply4(translate, temp, locModel);
 
-	this->_shader->setMat4("rotX", rotX);
-	this->_shader->setMat4("rotY", rotY);
-	this->_shader->setMat4("rotZ", rotZ);
-	this->_shader->setMat4("wRotX", worldRotX);
-	this->_shader->setMat4("wRotY", worldRotY);
-	this->_shader->setMat4("wRotZ", worldRotZ);
-	this->_shader->setMat4("scale", temp2);
-	this->_shader->setMat4("translate", temp);
+	Render::multiply4(worldRotY, worldRotX, temp);
+	Render::multiply4(worldRotZ, temp, temp2);
+	Render::multiply4(wTranslate, temp2, wModel);
+
+
+	this->_shader->setMat4("locModel", locModel);
+	this->_shader->setMat4("wModel", wModel);
     this->_shader->setMat4("projection", projection);
     this->_shader->setMat4("camera", camera);
     this->_mesh->draw();

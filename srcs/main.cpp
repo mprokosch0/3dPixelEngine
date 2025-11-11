@@ -14,14 +14,14 @@ int main()
 		std::cerr << e.what() << '\n';
 		return 1;
 	}
-	std::vector<float> points({-20, -2, -20,
-							   -20, 2, -20,
-							    -15, -2, -20,
-								-15, 2, -20,
-							   -20, -2, -15,
-							   -20, 2, -15,
-							    -15, -2, -15,
-								-15, 2, -15});
+	std::vector<float> points({0, -2, 0,
+							   0, 2, 0,
+							    5, -2, 0,
+								5, 2, 0,
+							   0, -2, 5,
+							   0, 2, 5,
+							    5, -2, 5,
+								5, 2, 5});
 	std::vector<float> points2({-8, -8, -8,
 							   -8, 8, -8,
 							    8, -8, -8,
@@ -64,6 +64,8 @@ int main()
 	Entity	tri(&base, &t);
 	Entity	cube(&base, &mesh);
 	Entity	plane(&sol, &planem);
+	cube.setScale(4, 2, 3);
+	cube.setPos(0, 5, 0);
 	glfwSetInputMode(Opengl::getWindow(), GLFW_STICKY_KEYS, GL_TRUE);
 	glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
 	glEnable(GL_DEPTH_TEST);
@@ -79,7 +81,7 @@ int main()
 		Render::manageKeys();
 		tri.draw();
 		cube.draw();
-		cube2.draw();
+		//cube2.draw();
 		plane.draw();
 		Opengl::glBindVertexArray(0);
 		glfwSwapBuffers(Opengl::getWindow());
