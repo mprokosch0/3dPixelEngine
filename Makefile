@@ -7,7 +7,7 @@ CPPFLAGS = -Wall -Wextra -Werror -Iincludes -O3 -g
 LDFLAGS = -lglfw  -lGL -lm
 
 SRCS = 	srcs/main.cpp srcs/Opengl.cpp srcs/Render.cpp srcs/Shaders.cpp srcs/ShadersUtils.cpp \
-		srcs/Mesh.cpp srcs/Entity.cpp \
+		srcs/Mesh.cpp srcs/Entity.cpp srcs/Menu.cpp srcs/Shapes.cpp\
 
 OBJ_DIR = obj
 OBJS = $(SRCS:%.c=$(OBJ_DIR)/%.o)

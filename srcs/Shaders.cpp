@@ -25,6 +25,12 @@ void Shaders::setMat4(const std::string &name, const float *mat4) const
 	Opengl::glUniformMatrix4fv(Opengl::glGetUniformLocation(this->_id, name.c_str()), 1, GL_FALSE, mat4);
 }
 
+void Shaders::setInt(const std::string &name, const int nb) const
+{
+	Opengl::glUniform1i(Opengl::glGetUniformLocation(this->_id, name.c_str()), nb);
+}
+
+
 GLuint Shaders::getId(void) const
 {
 	return this->_id;

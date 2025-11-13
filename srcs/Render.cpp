@@ -50,7 +50,7 @@ void	Render::project_points(float *mat)
 	float	ratio = (float)WIDTH / (float)HEIGHT;
 	float	fov = 45.0f * (M_PI / 180);
 	float	near = 0.1f;
-	float	far = 100.0f;
+	float	far = 1000.0f;
 	float t = tanf(fov / 2.0f);
 
 	mat[0]  = 1 / (ratio * t); mat[1]  = 0;		mat[2]  = 0;								mat[3]  = 0;
@@ -141,9 +141,8 @@ void Render::multiply4(float *a, float *b, float *result)
 }
 
 
-void Render::mouseCalculs(double posX, double posY)
+void Render::mouseCalculs(double posX, double posY, double &lastX, double &lastY)
 {
-	static float lastX, lastY;
 	static float init = 1;
 
 	if (init)
@@ -172,14 +171,39 @@ void Render::mouseCalculs(double posX, double posY)
 		_angleY = -89 * (M_PI / 180);
 }
 
-void Render::manageKeys()
+void Render::cameraMoveAngle(GLFWwindow *window, double &lastX, double &lastY)
 {
-    GLFWwindow *window = Opengl::getWindow();
-    double xpos, ypos;
-    glfwGetCursorPos(window, &xpos, &ypos);
-    Render::mouseCalculs(xpos, ypos);
+	double xpos, ypos;
 
-    float speed = 0.2f;
+	if (!Menu::getEnableMouse())
+	{
+		glfwGetCursorPos(window, &xpos, &ypos);
+		Render::mouseCalculs(xpos, ypos, lastX, lastY);
+	}
+	//camera horizontal
+	if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+	{
+        _angleX -= 0.01;
+    }
+    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+	{
+        _angleX += 0.01;
+    }
+
+    //camera vertical
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+	{
+       _angleY += 0.01;
+    }
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+	{
+    	_angleY -= 0.01;
+    }
+}
+
+void Render::cameraMovePos(GLFWwindow *window)
+{
+	float speed = 0.2f;
 
 	float frontX = sin(_angleX);
     float frontZ = -cos(_angleX);
@@ -211,4 +235,44 @@ void Render::manageKeys()
     	_tZ -= speed * rightZ;
 		_tX -= speed * rightX;
     }
+
+	//deplacement haut/bas
+	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+	{
+    	_tY += speed;
+	}
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+	{
+    	_tY -= speed;
+	}
+}
+
+void Render::manageKeys()
+{
+    GLFWwindow *window = Opengl::getWindow();
+	static double lastX, lastY;
+	static int pressed = 0;
+
+	Render::cameraMoveAngle(window, lastX, lastY);
+	Render::cameraMovePos(window);
+	
+	//pause menu
+	if (glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS && !pressed)
+	{
+		if (Menu::getEnableMouse())
+		{
+			glfwGetCursorPos(window, &lastX, &lastY);
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+			Menu::setEnableMouse(0);
+		}
+		else
+		{
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+			glfwSetCursorPos(window, WIDTH / 2, HEIGHT / 2);
+			Menu::setEnableMouse(1);
+		}
+		pressed = 1;
+	}
+	if (glfwGetKey(window, GLFW_KEY_TAB) == GLFW_RELEASE)
+        pressed = 0;
 }

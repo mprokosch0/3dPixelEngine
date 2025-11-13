@@ -2,7 +2,8 @@
 
 #define SHADERS_HPP
 
-#include "Opengl.hpp"
+# include "Opengl.hpp"
+# include "Menu.hpp"
 
 class Shaders
 {
@@ -17,6 +18,7 @@ class Shaders
 		void	use(void) const;
 		void	supr(void) const;
 		void	setMat4(const std::string &name, const float *mat4) const;
+		void	setInt(const std::string &name, const int nb) const;
 };
 
 GLuint	createShaderProgram(std::string &vertexSrc, std::string &fragmentSrc);

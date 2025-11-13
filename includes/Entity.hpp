@@ -5,16 +5,19 @@
 # include "Mesh.hpp"
 # include "Render.hpp"
 
+class Mesh;
+class Shaders;
+
 class Entity
 {
-	private:
+	protected:
 		Shaders	*_shader;
-		Mesh	*_mesh;
+		Mesh	_mesh;
 		float	_pos[3];
 		float	_rot[3];
 		float	_scale[3];
 
-	private:
+	protected:
 		void		rotate_x(float *mat) const;
 		void		rotate_y(float *mat) const;
 		void		rotate_z(float *mat) const;
@@ -22,7 +25,9 @@ class Entity
 
 
 	public:
-		Entity(Shaders *shader, Mesh *mesh);
+		Entity(void);
+		Entity(Shaders *shader, Mesh mesh);
+		Entity &operator=(Entity const &rhs);
 		~Entity();
 		void	setPos(float x, float y, float z);
 		void	setRot(float x, float y, float z);

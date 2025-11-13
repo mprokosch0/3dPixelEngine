@@ -5,6 +5,7 @@ uniform mat4 locModel;
 uniform mat4 wModel;
 uniform mat4 projection;
 uniform mat4 camera;
+uniform int uLine;
 
 flat out int faceID;
 out vec2 TexCoords;

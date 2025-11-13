@@ -1,8 +1,34 @@
 #include "Entity.hpp"
 
+Entity &Entity::operator=(Entity const &rhs)
+{
+	if (this == &rhs)
+		return *this;
+	this->_mesh = rhs._mesh;
+	this->_shader = rhs._shader;
+	this->_pos[0] = rhs._pos[0];
+	this->_pos[1] = rhs._pos[1];
+	this->_pos[2] = rhs._pos[2];
+	this->_scale[0] = rhs._scale[0];
+	this->_scale[1] = rhs._scale[1];
+	this->_scale[2] = rhs._scale[2];
+	this->_rot[0] = rhs._rot[0];
+	this->_rot[1] = rhs._rot[1];
+	this->_rot[2] = rhs._rot[2];
+	return *this;
+}
+
 //constructors/destructors---------------------------------
 
-Entity::Entity(Shaders *shader, Mesh *mesh)
+Entity::Entity(void)
+{
+	_pos[0] = _pos[1] = _pos[2] = 0;
+	_rot[0] = _rot[1] = _rot[2] = 0;
+	_scale[0] = _scale[1] = _scale[2] = 1;
+	this->_shader = NULL;
+}
+
+Entity::Entity(Shaders *shader, Mesh mesh)
 {
 	_pos[0] = _pos[1] = _pos[2] = 0;
 	_rot[0] = _rot[1] = _rot[2] = 0;
@@ -86,13 +112,13 @@ void Entity::draw() const
     this->_shader->use();
 
 	Render::identityMat4(toCenter);
-    toCenter[12] = -this->_mesh->getCenters()[0] - this->_pos[0];
-    toCenter[13] = -this->_mesh->getCenters()[1] - this->_pos[1];
-    toCenter[14] = -this->_mesh->getCenters()[2] - this->_pos[2];
+    toCenter[12] = -this->_mesh.getCenters()[0] - this->_pos[0];
+    toCenter[13] = -this->_mesh.getCenters()[1] - this->_pos[1];
+    toCenter[14] = -this->_mesh.getCenters()[2] - this->_pos[2];
 	Render::identityMat4(backToCenter);
-    backToCenter[12] = this->_mesh->getCenters()[0] + this->_pos[0];
-    backToCenter[13] = this->_mesh->getCenters()[1] + this->_pos[1];
-    backToCenter[14] = this->_mesh->getCenters()[2] + this->_pos[2];
+    backToCenter[12] = this->_mesh.getCenters()[0] + this->_pos[0];
+    backToCenter[13] = this->_mesh.getCenters()[1] + this->_pos[1];
+    backToCenter[14] = this->_mesh.getCenters()[2] + this->_pos[2];
     Render::translate_obj(wTranslate);
 	Render::identityMat4(translate);
     translate[12] += _pos[0];
@@ -126,5 +152,6 @@ void Entity::draw() const
 	this->_shader->setMat4("wModel", wModel);
     this->_shader->setMat4("projection", projection);
     this->_shader->setMat4("camera", camera);
-    this->_mesh->draw();
+	this->_shader->setInt("uline", 0);
+    this->_mesh.draw(*this->_shader);
 }

@@ -17,7 +17,9 @@ class Render
 	private:
 		Render(void);
 		~Render();
-		static void mouseCalculs(double posX, double posY);
+		static void mouseCalculs(double posX, double posY, double &lastX, double &lastY);
+		static void cameraMoveAngle(GLFWwindow *window, double &lastX, double &lastY);
+		static void cameraMovePos(GLFWwindow *window);
 
 	private:
 		//rotation
