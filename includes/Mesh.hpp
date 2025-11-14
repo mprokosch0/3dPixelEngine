@@ -10,6 +10,9 @@ class Shaders;
 class Mesh
 {
 	private:
+		std::vector<float>		_vertices;
+		std::vector<GLuint>		_indices;
+		std::vector<GLuint>		_indicesLine;
 		GLuint					_vao;
 		GLuint					_vaoLine;
 		GLuint					_vbo;
@@ -26,7 +29,9 @@ class Mesh
 		Mesh(Mesh const &rhs);
 		Mesh(void);
 		~Mesh(void);
-		void						draw(const Shaders &shader) const;
+		void						draw(const Shaders &shader, int flag) const;
+		std::vector<float>			getVertices() const;
+		void						newVbo(std::vector<float> &vertices) const;
 		const std::array<float, 3>	&getCenters(void) const;
 		GLuint						getVao() const;
 };

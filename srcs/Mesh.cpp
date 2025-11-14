@@ -67,6 +67,9 @@ Mesh::Mesh(const std::vector<float> &vertices, const std::vector<GLuint> &indice
 	this->_centers[0] /= vertexCount;
 	this->_centers[1] /= vertexCount;
 	this->_centers[2] /= vertexCount;
+	this->_vertices = vertices;
+	this->_indices = indices;
+	this->_indicesLine = indicesLine;
 }
 
 Mesh::Mesh(Mesh const &rhs)
@@ -79,11 +82,11 @@ Mesh::~Mesh(void) {}
 
 //Member functions-----------------------------------------
 
-void Mesh::draw(const Shaders &shader) const
+void Mesh::draw(const Shaders &shader, int flag) const
 {
 	Opengl::glBindVertexArray(this->_vao);
 	glDrawElements(GL_TRIANGLES, this->_indexCount, GL_UNSIGNED_INT, 0);
-	if (Menu::getEnableMouse())
+	if (flag)
 	{
 		shader.setInt("uline", Menu::getEnableMouse());
 		Opengl::glBindVertexArray(this->_vaoLine);
@@ -94,6 +97,17 @@ void Mesh::draw(const Shaders &shader) const
 const std::array<float, 3> &Mesh::getCenters(void) const
 {
 	return this->_centers;
+}
+
+void	Mesh::newVbo(std::vector<float> &vertices) const
+{
+	Opengl::glBindBuffer(GL_ARRAY_BUFFER, this->_vbo);
+	Opengl::glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * vertices.size(), vertices.data());
+}
+
+std::vector<float> Mesh::getVertices() const
+{
+	return this->_vertices;
 }
 
 GLuint Mesh::getVao() const

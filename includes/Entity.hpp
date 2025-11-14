@@ -13,6 +13,7 @@ class Entity
 	protected:
 		Shaders	*_shader;
 		Mesh	_mesh;
+		int		_colorId;
 		float	_pos[3];
 		float	_rot[3];
 		float	_scale[3];
@@ -29,10 +30,11 @@ class Entity
 		Entity(Shaders *shader, Mesh mesh);
 		Entity &operator=(Entity const &rhs);
 		~Entity();
+		void	setUniformColor(int flag);
 		void	setPos(float x, float y, float z);
 		void	setRot(float x, float y, float z);
 		void	setScale(float x, float y, float z);
-		void	draw(void) const;
+		void	draw(int colorId) const;
 };
 
 

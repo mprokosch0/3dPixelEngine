@@ -17,11 +17,12 @@ class Render
 	private:
 		Render(void);
 		~Render();
-		static void mouseCalculs(double posX, double posY, double &lastX, double &lastY);
+		static void mouseCalculs(double posX, double posY, double &lastX, double &lastY, double sensitivity);
 		static void cameraMoveAngle(GLFWwindow *window, double &lastX, double &lastY);
 		static void cameraMovePos(GLFWwindow *window);
 
 	private:
+		static GLuint	_frameBuffer;
 		//rotation
 		static float	_angleX;
 		static float	_angleY;
@@ -44,6 +45,11 @@ class Render
 		static void		translate_obj(float *mat);
 		static void		identityMat4(float *mat);
 		static void		multiply4(float *a, float *b, float *result);
+		static float	getTx();
+		static float	getTy();
+		static float	getTz();
+		static int		decodeColorId(unsigned char pixel[3]);
+		static GLuint	getFrameBuffer();
 		
 };
 

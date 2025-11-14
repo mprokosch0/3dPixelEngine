@@ -34,10 +34,21 @@ typedef void	(*DELETESHADERPROC)(GLuint shader);
 typedef GLint	(*GETUNIFORMLOCATIONPROC)(GLuint program, const GLchar *name);
 typedef void	(*UNIFORMMATRIX4FVPROC)(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
 typedef void	(*UNIFORMLIPROC)(GLint location, GLint v0);
+typedef void	(*UNIFORMLFPROC)(GLint location, GLfloat v0);
 typedef void	(*GENERATEMIPMAPPROC)(GLenum target);
 typedef void	(*DELETEBUFFERSPROC)(GLsizei n, const GLuint *buffers);
 typedef void	(*DELETEVERTEXARRAYSPROC)(GLsizei n, const GLuint *arrays);
 typedef void	(*DELETEPROGRAMPROC)(GLuint program);
+typedef void	(*BUFFERSUBDATA)(GLenum target, GLintptr offset, GLsizeiptr size, const void *data);
+typedef void	(*BINDFRAMEBUFFER)(GLenum target, GLuint framebuffer);
+typedef void	(*GENFRAMEBUFFERS)(GLsizei n, GLuint *ids);
+typedef void	(*FRAMEBUFFERTEXTURE2D)(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level);
+typedef void	(*GENRENDERBUFFERS)(GLsizei n, GLuint *renderbuffers);
+typedef void	(*BINDRENDERBUFFER)(GLenum target, GLuint renderbuffer);
+typedef void	(*RENDERBUFFERSTORAGE)(GLenum target, GLenum internalformat, GLsizei width, GLsizei height);
+typedef void	(*FRAMEBUFFERRENDERBUFFER)(GLenum target, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer);
+typedef	GLenum	(*CHECKFRAMEBUFFERSTATUS)(GLenum target);
+
 
 
 class Opengl
@@ -52,32 +63,42 @@ class Opengl
 
 
 	public:
-		static CREATESHADERPROC            glCreateShader;
-		static SHADERSOURCEPROC            glShaderSource;
-		static COMPILESHADERPROC           glCompileShader;
-		static CREATEPROGRAMPROC           glCreateProgram;
-		static ATTACHSHADERPROC            glAttachShader;
-		static LINKPROGRAMPROC             glLinkProgram;
-		static USEPROGRAMPROC              glUseProgram;
-		static GENVERTEXARRAYSPROC         glGenVertexArrays;
-		static BINDVERTEXARRAYPROC         glBindVertexArray;
-		static GENBUFFERSPROC              glGenBuffers;
-		static BINDBUFFERPROC              glBindBuffer;
-		static BUFFERDATAPROC              glBufferData;
-		static VERTEXATTRIBPOINTERPROC     glVertexAttribPointer;
-		static ENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray;
-		static GETSHADERIVPROC             glGetShaderiv;
-		static GETSHADERINFOLOGPROC        glGetShaderInfoLog;
-		static GETPROGRAMIVPROC            glGetProgramiv;
-		static GETPROGRAMINFOLOGPROC       glGetProgramInfoLog;
-		static DELETESHADERPROC            glDeleteShader;
-		static GETUNIFORMLOCATIONPROC      glGetUniformLocation;
-		static UNIFORMMATRIX4FVPROC        glUniformMatrix4fv;
-		static UNIFORMLIPROC               glUniform1i;
-		static GENERATEMIPMAPPROC          glGenerateMipmap;
-		static DELETEBUFFERSPROC           glDeleteBuffers;
-		static DELETEVERTEXARRAYSPROC      glDeleteVertexArrays;
-		static DELETEPROGRAMPROC           glDeleteProgram;
+		static CREATESHADERPROC				glCreateShader;
+		static SHADERSOURCEPROC				glShaderSource;
+		static COMPILESHADERPROC			glCompileShader;
+		static CREATEPROGRAMPROC			glCreateProgram;
+		static ATTACHSHADERPROC				glAttachShader;
+		static LINKPROGRAMPROC				glLinkProgram;
+		static USEPROGRAMPROC				glUseProgram;
+		static GENVERTEXARRAYSPROC			glGenVertexArrays;
+		static BINDVERTEXARRAYPROC			glBindVertexArray;
+		static GENBUFFERSPROC				glGenBuffers;
+		static BINDBUFFERPROC				glBindBuffer;
+		static BUFFERDATAPROC				glBufferData;
+		static VERTEXATTRIBPOINTERPROC		glVertexAttribPointer;
+		static ENABLEVERTEXATTRIBARRAYPROC	glEnableVertexAttribArray;
+		static GETSHADERIVPROC				glGetShaderiv;
+		static GETSHADERINFOLOGPROC			glGetShaderInfoLog;
+		static GETPROGRAMIVPROC				glGetProgramiv;
+		static GETPROGRAMINFOLOGPROC		glGetProgramInfoLog;
+		static DELETESHADERPROC				glDeleteShader;
+		static GETUNIFORMLOCATIONPROC		glGetUniformLocation;
+		static UNIFORMMATRIX4FVPROC			glUniformMatrix4fv;
+		static UNIFORMLIPROC				glUniform1i;
+		static UNIFORMLFPROC				glUniform1f;
+		static GENERATEMIPMAPPROC			glGenerateMipmap;
+		static DELETEBUFFERSPROC			glDeleteBuffers;
+		static DELETEVERTEXARRAYSPROC		glDeleteVertexArrays;
+		static DELETEPROGRAMPROC			glDeleteProgram;
+		static BUFFERSUBDATA				glBufferSubData;
+		static BINDFRAMEBUFFER				glBindFramebuffer;
+		static GENFRAMEBUFFERS				glGenFramebuffers;
+		static FRAMEBUFFERTEXTURE2D			glFramebufferTexture2D;
+		static GENRENDERBUFFERS				glGenRenderbuffers;
+		static BINDRENDERBUFFER				glBindRenderbuffer;
+		static RENDERBUFFERSTORAGE			glRenderbufferStorage;
+		static FRAMEBUFFERRENDERBUFFER		glFramebufferRenderbuffer;
+		static CHECKFRAMEBUFFERSTATUS		glCheckFramebufferStatus;
 
 	public:
 		static GLFWwindow	*getWindow(void);

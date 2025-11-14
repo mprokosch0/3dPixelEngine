@@ -6,6 +6,7 @@ float	Render::_angleZ = 0;
 float	Render::_tX = 0;
 float	Render::_tY = 0;
 float	Render::_tZ = 0;
+GLuint	Render::_frameBuffer = 0;
 
 //constructors/destructors---------------------------------
 
@@ -141,7 +142,7 @@ void Render::multiply4(float *a, float *b, float *result)
 }
 
 
-void Render::mouseCalculs(double posX, double posY, double &lastX, double &lastY)
+void Render::mouseCalculs(double posX, double posY, double &lastX, double &lastY, double sentitivity)
 {
 	static float init = 1;
 
@@ -159,8 +160,8 @@ void Render::mouseCalculs(double posX, double posY, double &lastX, double &lastY
 	lastY = posY;
 
 	//sensitivity
-	offsetX *= 0.001;
-	offsetY *= 0.001;
+	offsetX *= sentitivity;
+	offsetY *= sentitivity;
 
 	_angleX += offsetX;
 	_angleY += offsetY;
@@ -174,20 +175,38 @@ void Render::mouseCalculs(double posX, double posY, double &lastX, double &lastY
 void Render::cameraMoveAngle(GLFWwindow *window, double &lastX, double &lastY)
 {
 	double xpos, ypos;
-
+	static int pressed = 0;
+		
 	if (!Menu::getEnableMouse())
 	{
 		glfwGetCursorPos(window, &xpos, &ypos);
-		Render::mouseCalculs(xpos, ypos, lastX, lastY);
+		Render::mouseCalculs(xpos, ypos, lastX, lastY, 0.001);
+	}
+	else
+	{
+		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
+		{
+			if (!pressed)
+				glfwGetCursorPos(window, &lastX, &lastY);
+			glfwGetCursorPos(window, &xpos, &ypos);
+			Render::mouseCalculs(xpos, ypos, lastX, lastY, 0.003);
+			pressed = 1;
+		}
+		else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_RELEASE)
+			pressed = 0;
 	}
 	//camera horizontal
 	if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
 	{
         _angleX -= 0.01;
+		if (_angleY < -89 * (M_PI / 180))
+			_angleY = -89 * (M_PI / 180);
     }
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
 	{
         _angleX += 0.01;
+		if (_angleY > 89 * (M_PI / 180))
+			_angleY = 89 * (M_PI / 180);
     }
 
     //camera vertical
@@ -211,6 +230,11 @@ void Render::cameraMovePos(GLFWwindow *window)
     // vecteur droit (perpendiculaire à front)
     float rightX = cos(_angleX);
     float rightZ = sin(_angleX);
+
+	if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+	{
+		speed *= 3;
+	}
 
     // déplacement avant/arrière
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
@@ -275,4 +299,29 @@ void Render::manageKeys()
 	}
 	if (glfwGetKey(window, GLFW_KEY_TAB) == GLFW_RELEASE)
         pressed = 0;
+}
+
+int Render::decodeColorId(unsigned char pixel[3])
+{
+	return pixel[0] + (pixel[1] << 8) + (pixel[2] << 16);
+}
+
+float Render::getTx()
+{
+	return _tX;
+}
+
+float Render::getTy()
+{
+	return _tY;
+}
+
+float Render::getTz()
+{
+	return _tZ;
+}
+
+GLuint Render::getFrameBuffer()
+{
+	return _frameBuffer;
 }

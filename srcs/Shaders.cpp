@@ -30,6 +30,10 @@ void Shaders::setInt(const std::string &name, const int nb) const
 	Opengl::glUniform1i(Opengl::glGetUniformLocation(this->_id, name.c_str()), nb);
 }
 
+void Shaders::setFloat(const std::string &name, const float nb) const
+{
+	Opengl::glUniform1f(Opengl::glGetUniformLocation(this->_id, name.c_str()), nb);
+}
 
 GLuint Shaders::getId(void) const
 {

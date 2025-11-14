@@ -133,7 +133,7 @@ static std::vector<float> GenGrid()
 			res.push_back(-100);
 			res.push_back(i);
 			res.push_back(j);
-			res.push_back(100);
+			res.push_back(90);
 			res.push_back(i);
 		}
 	}
@@ -144,7 +144,7 @@ static std::vector<float> GenGrid()
 			res.push_back(-100);
 			res.push_back(j);
 			res.push_back(i);
-			res.push_back(100);
+			res.push_back(90);
 			res.push_back(j);
 			res.push_back(i);
 		}
@@ -158,7 +158,7 @@ static std::vector<float> GenGrid()
 			res.push_back(-100);
 			res.push_back(i);
 			res.push_back(j);
-			res.push_back(100);
+			res.push_back(90);
 		}
 	}
 	return res;
@@ -207,7 +207,10 @@ void Grid::draw() const
     backToCenter[12] = this->_mesh.getCenters()[0] + this->_pos[0];
     backToCenter[13] = this->_mesh.getCenters()[1] + this->_pos[1];
     backToCenter[14] = this->_mesh.getCenters()[2] + this->_pos[2];
-    Render::translate_obj(wTranslate);
+	Render::identityMat4(wTranslate);
+	wTranslate[12] += Render::getTx() - (std::floor(Render::getTx() / 10) * 10);
+    wTranslate[13] += Render::getTy() - (std::floor(Render::getTy() / 10) * 10);
+    wTranslate[14] += Render::getTz() - (std::floor(Render::getTz() / 10) * 10);
 	Render::identityMat4(translate);
     translate[12] += _pos[0];
     translate[13] += _pos[1];

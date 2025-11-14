@@ -23,10 +23,20 @@ DELETESHADERPROC            Opengl::glDeleteShader = nullptr;            // Dele
 GETUNIFORMLOCATIONPROC      Opengl::glGetUniformLocation = nullptr;      // Gets the location of a uniform variable in a shader program
 UNIFORMMATRIX4FVPROC        Opengl::glUniformMatrix4fv = nullptr;        // Sets the value of a mat4 uniform variable
 UNIFORMLIPROC               Opengl::glUniform1i = nullptr;               // Sets the value of an int uniform variable
+UNIFORMLFPROC               Opengl::glUniform1f = nullptr;               // Sets the value of an float uniform variable
 GENERATEMIPMAPPROC          Opengl::glGenerateMipmap = nullptr;          // Generates mipmaps for the currently bound texture
 DELETEBUFFERSPROC           Opengl::glDeleteBuffers = nullptr;           // Deletes one or more buffer objects
 DELETEVERTEXARRAYSPROC      Opengl::glDeleteVertexArrays = nullptr;      // Deletes one or more Vertex Array Objects
 DELETEPROGRAMPROC           Opengl::glDeleteProgram = nullptr;           // Deletes a program object
+BUFFERSUBDATA               Opengl::glBufferSubData = nullptr;           // Replace a buffer by another one
+BINDFRAMEBUFFER             Opengl::glBindFramebuffer = nullptr;         // Link a framebuffer
+GENFRAMEBUFFERS             Opengl::glGenFramebuffers = nullptr;
+FRAMEBUFFERTEXTURE2D        Opengl::glFramebufferTexture2D = nullptr;
+GENRENDERBUFFERS            Opengl::glGenRenderbuffers = nullptr;
+BINDRENDERBUFFER            Opengl::glBindRenderbuffer = nullptr;
+RENDERBUFFERSTORAGE         Opengl::glRenderbufferStorage = nullptr;
+FRAMEBUFFERRENDERBUFFER     Opengl::glFramebufferRenderbuffer = nullptr;
+CHECKFRAMEBUFFERSTATUS      Opengl::glCheckFramebufferStatus = nullptr;
 
 //constructors/destructors---------------------------------
 
@@ -96,10 +106,20 @@ int Opengl::loadGLFunctions()
     glGetUniformLocation = (GETUNIFORMLOCATIONPROC)glfwGetProcAddress("glGetUniformLocation");
     glUniformMatrix4fv = (UNIFORMMATRIX4FVPROC)glfwGetProcAddress("glUniformMatrix4fv");
     glUniform1i = (UNIFORMLIPROC)glfwGetProcAddress("glUniform1i");
+    glUniform1f = (UNIFORMLFPROC)glfwGetProcAddress("glUniform1f");
     glGenerateMipmap = (GENERATEMIPMAPPROC)glfwGetProcAddress("glGenerateMipmap");
     glDeleteBuffers = (DELETEBUFFERSPROC)glfwGetProcAddress("glDeleteBuffers");
     glDeleteVertexArrays = (DELETEVERTEXARRAYSPROC)glfwGetProcAddress("glDeleteVertexArrays");
     glDeleteProgram = (DELETEPROGRAMPROC)glfwGetProcAddress("glDeleteProgram");
+    glBufferSubData = (BUFFERSUBDATA)glfwGetProcAddress("glBufferSubData");
+    glBindFramebuffer = (BINDFRAMEBUFFER)glfwGetProcAddress("glBindFramebuffer");
+    glGenFramebuffers = (GENFRAMEBUFFERS)glfwGetProcAddress("glGenFramebuffers");
+    glFramebufferTexture2D = (FRAMEBUFFERTEXTURE2D)glfwGetProcAddress("glFramebufferTexture2D");
+    glGenRenderbuffers = (GENRENDERBUFFERS)glfwGetProcAddress("glGenRenderbuffers");
+    glBindRenderbuffer = (BINDRENDERBUFFER)glfwGetProcAddress("glBindRenderbuffer");
+    glRenderbufferStorage = (RENDERBUFFERSTORAGE)glfwGetProcAddress("glRenderbufferStorage");
+    glFramebufferRenderbuffer = (FRAMEBUFFERRENDERBUFFER)glfwGetProcAddress("glFramebufferRenderbuffer");
+    glCheckFramebufferStatus = (CHECKFRAMEBUFFERSTATUS)glfwGetProcAddress("glCheckFramebufferStatus");
     if (!glCreateShader || !glShaderSource || !glCompileShader)
 	{
         std::cerr << "Erreur: certaines fonctions OpenGL modernes ne sont pas dispo.\n";

@@ -15,21 +15,17 @@ Entity &Entity::operator=(Entity const &rhs)
 	this->_rot[0] = rhs._rot[0];
 	this->_rot[1] = rhs._rot[1];
 	this->_rot[2] = rhs._rot[2];
+	this->_colorId = rhs._colorId;
 	return *this;
 }
 
 //constructors/destructors---------------------------------
 
-Entity::Entity(void)
-{
-	_pos[0] = _pos[1] = _pos[2] = 0;
-	_rot[0] = _rot[1] = _rot[2] = 0;
-	_scale[0] = _scale[1] = _scale[2] = 1;
-	this->_shader = NULL;
-}
-
 Entity::Entity(Shaders *shader, Mesh mesh)
 {
+	static int i = 16777215;
+
+	_colorId = i--;
 	_pos[0] = _pos[1] = _pos[2] = 0;
 	_rot[0] = _rot[1] = _rot[2] = 0;
 	_scale[0] = _scale[1] = _scale[2] = 1;
@@ -100,7 +96,26 @@ void	Entity::setScale(float x, float y, float z)
 	this->_scale[2] = z;
 }
 
-void Entity::draw() const
+void Entity::setUniformColor(int flag)
+{
+	float r = 0;
+	float g = 0;
+	float b = 0;
+
+	if (flag)
+	{
+    	r = (this->_colorId & 0xFF) / 255.0f;
+    	g = ((this->_colorId >> 8) & 0xFF) / 255.0f;
+    	b = ((this->_colorId >> 16) & 0xFF) / 255.0f;
+	}
+	this->_shader->use();
+    this->_shader->setFloat("colorPickR", r);
+	this->_shader->setFloat("colorPickG", g);
+	this->_shader->setFloat("colorPickB", b);
+}
+
+
+void Entity::draw(int colorId) const
 {
     float rotX[16], rotY[16], rotZ[16];
     float worldRotX[16], worldRotY[16], worldRotZ[16];
@@ -153,5 +168,5 @@ void Entity::draw() const
     this->_shader->setMat4("projection", projection);
     this->_shader->setMat4("camera", camera);
 	this->_shader->setInt("uline", 0);
-    this->_mesh.draw(*this->_shader);
+    this->_mesh.draw(*this->_shader, (colorId == this->_colorId) ? 1 : 0);
 }

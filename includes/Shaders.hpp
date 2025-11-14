@@ -19,6 +19,7 @@ class Shaders
 		void	supr(void) const;
 		void	setMat4(const std::string &name, const float *mat4) const;
 		void	setInt(const std::string &name, const int nb) const;
+		void	setFloat(const std::string &name, const float nb) const;
 };
 
 GLuint	createShaderProgram(std::string &vertexSrc, std::string &fragmentSrc);
