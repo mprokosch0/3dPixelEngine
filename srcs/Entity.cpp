@@ -1,5 +1,7 @@
 #include "Entity.hpp"
 
+std::vector<Entity *> Entity::_objs = {};
+
 Entity &Entity::operator=(Entity const &rhs)
 {
 	if (this == &rhs)
@@ -16,26 +18,61 @@ Entity &Entity::operator=(Entity const &rhs)
 	this->_rot[1] = rhs._rot[1];
 	this->_rot[2] = rhs._rot[2];
 	this->_colorId = rhs._colorId;
+	this->_selected = false;
 	return *this;
 }
 
 //constructors/destructors---------------------------------
 
-Entity::Entity(Shaders *shader, Mesh mesh)
+Entity::Entity(Shaders *shader, Mesh mesh, int flag)
 {
 	static int i = 16777215;
 
 	_colorId = i--;
+	_selected = false;
 	_pos[0] = _pos[1] = _pos[2] = 0;
 	_rot[0] = _rot[1] = _rot[2] = 0;
 	_scale[0] = _scale[1] = _scale[2] = 1;
 	this->_shader = shader;
 	this->_mesh = mesh;
+	if (!flag)
+		_objs.push_back(this);
 }
 
 Entity::~Entity(void) {}
 
 //Member functions-----------------------------------------
+
+int		Entity::getColorId() const
+{
+	return this->_colorId;
+}
+
+bool	Entity::getSelected() const
+{
+	return this->_selected;
+}
+
+void	Entity::setSelected(bool select)
+{
+	this->_selected = select;
+}
+
+std::vector<Entity *> &Entity::getObjs(void)
+{
+	return _objs;
+}
+
+const std::vector<Entity *> &Entity::cstGetObjs(void)
+{
+	return _objs;
+}
+
+void	Entity::deselectAll()
+{
+	for (Entity *obj : _objs)
+		obj->_selected = false;
+}
 
 void	Entity::scale(float *mat) const
 {
@@ -168,5 +205,7 @@ void Entity::draw(int colorId) const
     this->_shader->setMat4("projection", projection);
     this->_shader->setMat4("camera", camera);
 	this->_shader->setInt("uline", 0);
-    this->_mesh.draw(*this->_shader, (colorId == this->_colorId) ? 1 : 0);
+	if (this->_selected)
+		colorId = 2;
+    this->_mesh.draw(*this->_shader, colorId);
 }

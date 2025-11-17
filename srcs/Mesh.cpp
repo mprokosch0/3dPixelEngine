@@ -19,6 +19,44 @@ Mesh &Mesh::operator=(Mesh const &rhs)
 
 Mesh::Mesh(void): _vao(0), _vaoLine(0), _vbo(0), _ebo(0), _eboLine(0), _indexCount(0), _indexCountLine(0){}
 
+Mesh::Mesh(const std::vector<float> &vertices, const std::vector<GLuint> &indices)
+{
+	Opengl::glGenVertexArrays(1, &_vao);
+	Opengl::glGenBuffers(1, &_vbo);
+	Opengl::glGenBuffers(1, &_ebo);
+
+	Opengl::glBindVertexArray(_vao);
+
+	// buffer des sommets
+	Opengl::glBindBuffer(GL_ARRAY_BUFFER, _vbo);
+	Opengl::glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
+	Opengl::glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+	Opengl::glEnableVertexAttribArray(0);
+
+	//buffer des indices (faces)
+	Opengl::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ebo);
+	Opengl::glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLuint), indices.data(), GL_STATIC_DRAW);
+
+	Opengl::glBindVertexArray(0);
+	Opengl::glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	this->_indexCount = 0;
+	this->_indexCountLine = 0;
+	this->_centers[0] = this->_centers[1] = this->_centers[2] = 0;
+	size_t vertexCount = vertices.size() / 2;
+	for (size_t i = 0; i < vertices.size(); i += 2)
+	{
+		this->_centers[0] += vertices[i + 0];
+		this->_centers[1] += vertices[i + 1];
+	}
+	this->_centers[0] /= vertexCount;
+	this->_centers[1] /= vertexCount;
+	this->_centers[1] = 0;
+	this->_vertices = vertices;
+	this->_indices = {};
+	this->_indicesLine = {};
+}
+
 Mesh::Mesh(const std::vector<float> &vertices, const std::vector<GLuint> &indices, const std::vector<GLuint> &indicesLine)
 {
 	Opengl::glGenVertexArrays(1, &_vao);
@@ -88,7 +126,7 @@ void Mesh::draw(const Shaders &shader, int flag) const
 	glDrawElements(GL_TRIANGLES, this->_indexCount, GL_UNSIGNED_INT, 0);
 	if (flag)
 	{
-		shader.setInt("uline", Menu::getEnableMouse());
+		shader.setInt("uline", flag);
 		Opengl::glBindVertexArray(this->_vaoLine);
 		glDrawElements(GL_LINES, this->_indexCountLine, GL_UNSIGNED_INT, 0);
 	}

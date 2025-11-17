@@ -17,8 +17,12 @@ void main()
         else
             FragColor = vec4(colorPickR, colorPickG, colorPickB, 1);
     }
-    else
+    else if (uline == 1)
     {
         FragColor = vec4(1, 1, 1, 1);
+    }
+    else
+    {
+        FragColor = vec4(1, 1, 0, 1);
     }
 }

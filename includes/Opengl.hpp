@@ -60,6 +60,8 @@ class Opengl
 
 	private:
 		static GLFWwindow	*_window;
+		static int			_width;
+		static int			_height;
 
 
 	public:
@@ -102,6 +104,9 @@ class Opengl
 
 	public:
 		static GLFWwindow	*getWindow(void);
+		static int			getWidth(void);
+		static int			getHeight(void);
+		static void			setDim(int width, int height);
 		static void			initiateWindow(std::string str);
 };
 

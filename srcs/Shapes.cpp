@@ -31,7 +31,7 @@ Cube::Cube(Shaders *shader, float pos[3], float rot[3], float scale[3]): Entity(
 		4, 5,  4, 6,
 		5, 7,
 		6, 7
-	}))
+	}), 0)
 {
 	this->_pos[0] = pos[0];
 	this->_pos[1] = pos[1];
@@ -65,7 +65,7 @@ Plane::Plane(Shaders *shader, float pos[3], float rot[3], float scale[3]): Entit
 	std::vector<GLuint> {
 		0, 1,  0, 2,
 		3, 1,  3, 2
-	}))
+	}), 0)
 {
 	this->_pos[0] = pos[0];
 	this->_pos[1] = pos[1];
@@ -101,7 +101,7 @@ Triangle::Triangle(Shaders *shader, float pos[3], float rot[3], float scale[3]):
 	std::vector<GLuint> {
 		0, 1,  0, 2,  0, 3,
 		1, 2,  2, 3,  1, 3
-	}))
+	}), 0)
 {
 	this->_pos[0] = pos[0];
 	this->_pos[1] = pos[1];
@@ -115,6 +115,38 @@ Triangle::Triangle(Shaders *shader, float pos[3], float rot[3], float scale[3]):
 }
 
 Triangle::~Triangle(void) {}
+
+//Member functions-----------------------------------------
+
+//HUD---------------------------------------------------------------------------------
+
+//constructors/destructors---------------------------------
+
+Hud::Hud(Shaders *shader, float x, float y, float lenX, float lenY): Entity(shader, 
+	Mesh(std::vector<float>{
+			x, y,  x, y + lenY,
+			x + lenX, y,  x + lenX, y + lenY
+		},
+		std::vector<GLuint>{
+			0, 1, 2,  1, 2, 3
+		}), 1)
+{}
+
+Hud::~Hud(void) {}
+
+void Hud::draw() const
+{
+    float projection[16];
+
+	glDisable(GL_DEPTH_TEST);
+    this->_shader->use();
+
+	Render::project_pointsOrth(projection);
+
+    this->_shader->setMat4("projection", projection);
+	Opengl::glBindVertexArray(this->_mesh.getVao());
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+}
 
 //Member functions-----------------------------------------
 
@@ -181,7 +213,7 @@ Grid::Grid(Shaders *shader): Entity(shader,
 	std::vector<GLuint> {
 		0, 1,  0, 2,  0, 3,
 		1, 2,  2, 3,  1, 3
-	}))
+	}), 1)
 {}
 
 Grid::~Grid(void) {}

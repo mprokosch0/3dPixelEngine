@@ -6,8 +6,8 @@ GLuint initFrameBuffer()
 	GLuint pickingTexture;
 	GLuint pickingDepth;
 
-	int width = WIDTH;
-	int height = HEIGHT;
+	int width = Opengl::getWidth();
+	int height = Opengl::getHeight();
 
 	// 1. Créer le FBO
 	Opengl::glGenFramebuffers(1, &pickingFBO);
@@ -40,33 +40,101 @@ GLuint initFrameBuffer()
 	return pickingFBO;
 }
 
-static void drawScene(GLuint buffer, std::vector<Entity> &objs, Grid &grid, int pickedColor)
+static void	keyGestion(float &x, float &y, float &z)
 {
-	Opengl::glBindFramebuffer(GL_FRAMEBUFFER, buffer);
-	glViewport(0, 0, WIDTH, HEIGHT);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	for (Entity &obj : objs)
+	std::vector<Entity *> objs = Entity::getObjs();
+	if (!Menu::getEnableMouse())
 	{
-		if (buffer)
-			obj.setUniformColor(1);
-		else
-			obj.setUniformColor(0);
-		obj.draw(pickedColor);
+		objs[1]->setRot(x, y, z);
+		objs[3]->setRot(0, y, 0);
+		objs[4]->setRot(M_PI, y, 0);
+		objs[5]->setRot(x, 0, -M_PI / 2);
+		objs[6]->setRot(x, 0, M_PI / 2);
+		x += 0.07;
+		y += 0.07;
+		z += 0.07;
 	}
-	if (!buffer && Menu::getEnableMouse())
+	Render::manageKeys();
+}
+
+static void drawNormal(GLuint buffer, Grid &grid, int pickedColor)
+{
+	std::vector<Entity *> objs = Entity::getObjs();
+	Opengl::glBindFramebuffer(GL_FRAMEBUFFER, buffer);
+	glViewport(0, 0, Opengl::getWidth(), Opengl::getHeight());
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	for (Entity *obj : objs)
+	{
+		obj->setUniformColor(0);
+		if (pickedColor == obj->getColorId() && Menu::getEnableMouse())
+			obj->draw(1);
+		else
+			obj->draw(0);
+	}
+	if (Menu::getEnableMouse())
 		grid.draw();
 	Opengl::glBindVertexArray(0);
 }
 
+static void drawPickColor(GLuint buffer)
+{
+	std::vector<Entity *> objs = Entity::getObjs();
+	Opengl::glBindFramebuffer(GL_FRAMEBUFFER, buffer);
+	glViewport(0, 0, Opengl::getWidth(), Opengl::getHeight());
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	for (Entity *obj : objs)
+	{
+		obj->setUniformColor(1);
+		obj->draw(0);
+	}
+	Opengl::glBindVertexArray(0);
+}
+
+static void manageHud(Hud &hud)
+{
+	const std::vector<Entity *> &objs = Entity::getObjs();
+	for (const Entity *obj : objs)
+	{
+		if (obj->getSelected())
+		{
+			hud.draw();
+			return ;
+		}
+	}
+}
+
+static void	drawScene(Grid &grid, Hud &hud, GLuint frameBuffer)
+{
+	static float x = 0, y = 0, z = 0;
+	double xpos, ypos;
+	unsigned char pixel[3];
+
+	keyGestion(x, y, z);
+	drawPickColor(frameBuffer);
+	
+	glfwGetCursorPos(Opengl::getWindow(), &xpos, &ypos);
+	Opengl::glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
+	glReadPixels(xpos, Opengl::getHeight() - ypos - 1, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, &pixel);
+	Opengl::glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	int pickedID = Render::decodeColorId(pixel);
+	Render::mouseControls(Opengl::getWindow(), pickedID);
+	drawNormal(0, grid, pickedID);
+	if (Menu::getEnableMouse())
+		manageHud(hud);
+}
+
 int main()
 {
-	Shaders	base, sol, quad;
+	Shaders	base, sol, quad, hudS;
+	int	width, height;
 	try
 	{
-		Opengl::initiateWindow("test");
+		Opengl::initiateWindow("engine");
 		base = Shaders("shaders/vertexShader.glsl", "shaders/fragmentShader.glsl");
 		sol = Shaders("shaders/vertexShader.glsl", "shaders/fragmentShaderPlane.glsl");
 		quad = Shaders("shaders/vertexShader.glsl", "shaders/fragmentShaderGrid.glsl");
+		hudS = Shaders("shaders/vertexShaderHud.glsl", "shaders/fragmentShaderHud.glsl");
 	}
 	catch(const std::exception& e)
 	{
@@ -74,52 +142,33 @@ int main()
 		return 1;
 	}
 	Grid	grid(&quad);
-	Entity	cube2 = Cube(&base, (float []){-10, 10, -10}, (float []){2, 0, 2}, (float []){2, 2, 2});
-	Entity	tri = Triangle(&base, (float []){0, 0, 0}, (float []){0, 0, 0}, (float []){5, 5, 5});
-	Entity	tr2 = Triangle(&base, (float []){0, 6, 0}, (float []){M_PI, 0, 0}, (float []){5, 5, 5});
-	Entity	tr4 = Triangle(&base, (float []){-3, 3, 0}, (float []){M_PI / 2, 0, M_PI / 2}, (float []){5, 5, 5});
-	Entity	tr3 = Triangle(&base, (float []){3, 3, 0}, (float []){M_PI / 2, 0, -M_PI / 2}, (float []){5, 5, 5});
-	Entity	cube = Cube(&base, (float []){10, 10, 10}, (float []){0, 0, 0}, (float []){2, 2, 2});
-	Entity	plane = Plane(&sol, (float []){-1, -1, -1}, (float []){0, 0, 0}, (float []){50, 1, 50});
-	std::vector<Entity> objs = {plane, cube, cube2, tri, tr2, tr3, tr4};
+	Hud		hud(&hudS, 0, 0, 500, Opengl::getHeight());
+	Plane(&sol, (float []){-1, -1, -1}, (float []){0, 0, 0}, (float []){50, 1, 50});
+	Cube(&base, (float []){10, 10, 10}, (float []){0, 0, 0}, (float []){2, 2, 2});
+	Cube(&base, (float []){-10, 10, -10}, (float []){2, 0, 2}, (float []){2, 2, 2});
+	Triangle(&base, (float []){0, 0, 0}, (float []){0, 0, 0}, (float []){5, 5, 5});
+	Triangle(&base, (float []){0, 6, 0}, (float []){M_PI, 0, 0}, (float []){5, 5, 5});
+	Triangle(&base, (float []){3, 3, 0}, (float []){M_PI / 2, 0, -M_PI / 2}, (float []){5, 5, 5});
+	Triangle(&base, (float []){-3, 3, 0}, (float []){M_PI / 2, 0, M_PI / 2}, (float []){5, 5, 5});
 	glfwSetInputMode(Opengl::getWindow(), GLFW_STICKY_KEYS, GL_TRUE);
 	glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
-	glEnable(GL_DEPTH_TEST);
-	float x = 0, y = 0, z = 0;
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glfwSetCursorPos(Opengl::getWindow(), WIDTH / 2, HEIGHT / 2);
+	glfwSetCursorPos(Opengl::getWindow(), Opengl::getWidth() / 2, Opengl::getHeight() / 2);
 	glfwSetInputMode(Opengl::getWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	GLuint	frameBuffer = initFrameBuffer();
+
 	while( glfwGetKey(Opengl::getWindow(), GLFW_KEY_ESCAPE ) != GLFW_PRESS &&
 		   glfwWindowShouldClose(Opengl::getWindow()) == 0 )
 	{
-		if (!Menu::getEnableMouse())
-		{
-			objs[1].setRot(x, y, z);
-			objs[3].setRot(0, y, 0);
-			objs[4].setRot(M_PI, y, 0);
-			objs[5].setRot(x, 0, -M_PI / 2);
-			objs[6].setRot(x, 0, M_PI / 2);
-			x += 0.07;
-			y += 0.07;
-			z += 0.07;
-		}
-		Render::manageKeys();
-		drawScene(frameBuffer, objs, grid, -1);
-		double xpos, ypos;
-		unsigned char pixel[3];
-		glfwGetCursorPos(Opengl::getWindow(), &xpos, &ypos);
-		Opengl::glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
-		glReadPixels(xpos, HEIGHT - ypos - 1, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, &pixel);
-		Opengl::glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-		int pickedID = Render::decodeColorId(pixel);
-
-		drawScene(0, objs, grid, pickedID);
+		glEnable(GL_DEPTH_TEST);
+		glfwGetWindowSize(Opengl::getWindow(), &width, &height);
+		Opengl::setDim(width, height);
+		drawScene(grid, hud, frameBuffer);
 		glfwSwapBuffers(Opengl::getWindow());
 		glfwPollEvents();
 	}
+
 	base.supr();
 	sol.supr();
 	glfwDestroyWindow(Opengl::getWindow());

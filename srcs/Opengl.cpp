@@ -1,6 +1,8 @@
 #include "Opengl.hpp"
 
 GLFWwindow					*Opengl::_window = NULL;
+int                         Opengl::_width = WIDTH;
+int                         Opengl::_height = HEIGHT;
 CREATESHADERPROC            Opengl::glCreateShader = nullptr;            // Creates a new shader object (vertex, fragment, etc.)
 SHADERSOURCEPROC            Opengl::glShaderSource = nullptr;            // Sets the source code of a shader
 COMPILESHADERPROC           Opengl::glCompileShader = nullptr;           // Compiles a shader object
@@ -46,6 +48,22 @@ Opengl::~Opengl(void) {}
 
 //Member functions-----------------------------------------
 
+int Opengl::getWidth(void)
+{
+	return _width;
+}
+
+int Opengl::getHeight(void)
+{
+	return _height;
+}
+
+void    Opengl::setDim(int width, int height)
+{
+    _width = width;
+    _height = height;
+}
+
 GLFWwindow *Opengl::getWindow(void)
 {
 	return _window;
@@ -65,7 +83,7 @@ void Opengl::initiateWindow(std::string str)
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	_window = glfwCreateWindow(WIDTH, HEIGHT, str.c_str(), NULL, NULL);
+	_window = glfwCreateWindow(Opengl::getWidth(), Opengl::getHeight(), str.c_str(), NULL, NULL);
 	if(_window == NULL)
 	{
 		std::cerr << "Failed to open GLFW window.\n" << std::endl;

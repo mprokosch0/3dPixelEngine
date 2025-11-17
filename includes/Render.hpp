@@ -3,6 +3,7 @@
 # define RENDER_HPP
 
 # include "Shaders.hpp"
+# include "Entity.hpp"
 # include <cmath>
 
 # ifndef M_PI
@@ -11,6 +12,8 @@
 # ifndef M_PI_2
 #  define M_PI_2 1.57079632679489661923
 #endif
+
+class Entity;
 
 class Render
 {
@@ -33,7 +36,8 @@ class Render
 		static float	_tZ;
 	
 	public:
-		static void		manageKeys(void);
+		static void		manageKeys();
+		static void		mouseControls(GLFWwindow *window, int colorId);
 		static void		lookAt(float *mat, float eyeX, float eyeY, float eyeZ,
                         		float centerX, float centerY, float centerZ,
                         		float upX, float upY, float upZ);
@@ -41,6 +45,7 @@ class Render
 		static void		rotate_y(float *mat);
 		static void		rotate_z(float *mat);
 		static void		project_points(float *mat);
+		static void		project_pointsOrth(float *mat);
 		static void		center_obj(float *mat);
 		static void		translate_obj(float *mat);
 		static void		identityMat4(float *mat);

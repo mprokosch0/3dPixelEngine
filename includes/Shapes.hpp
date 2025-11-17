@@ -33,4 +33,12 @@ class Grid: public Entity
 		void draw() const;
 };
 
+class Hud: public Entity
+{
+	public:
+		Hud(Shaders *shader, float x, float y, float lenX, float lenY);
+		~Hud(void);
+		void draw() const;
+};
+
 #endif

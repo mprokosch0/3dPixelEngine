@@ -48,8 +48,8 @@ void	Render::rotate_z(float *mat)
 
 void	Render::project_points(float *mat)
 {
-	float	ratio = (float)WIDTH / (float)HEIGHT;
-	float	fov = 45.0f * (M_PI / 180);
+	float	ratio = (float)Opengl::getWidth() / (float)Opengl::getHeight();
+	float	fov = 90.0f * (M_PI / 180);
 	float	near = 0.1f;
 	float	far = 1000.0f;
 	float t = tanf(fov / 2.0f);
@@ -58,6 +58,14 @@ void	Render::project_points(float *mat)
 	mat[4]  = 0;    		   mat[5]  = 1 / t;	mat[6]  = 0;								mat[7]  = 0;
 	mat[8]  = 0;			   mat[9]  = 0;		mat[10] = -(far + near) / (far - near);		mat[11] = -1;
 	mat[12] = 0;    		   mat[13] = 0;		mat[14] = -2 * far * near / (far - near);	mat[15] = 0;
+}
+
+void	Render::project_pointsOrth(float *mat)
+{
+	mat[0]  = 2.0f / Opengl::getWidth();	mat[1]  = 0;						mat[2]  = 0;	mat[3]  = 0;
+	mat[4]  = 0;						mat[5]  = 2.0f / Opengl::getHeight();	mat[6]  = 0;	mat[7]  = 0;
+	mat[8]  = 0;						mat[9]  = 0;						mat[10] = -1;	mat[11] = 0;
+	mat[12] = -1;						mat[13] = -1;						mat[14] = 0;	mat[15] = 1;
 }
 
 void Render::identityMat4(float *mat)
@@ -271,6 +279,36 @@ void Render::cameraMovePos(GLFWwindow *window)
 	}
 }
 
+void Render::mouseControls(GLFWwindow *window, int colorId)
+{
+	static int pressed = 0;
+	int used = 0;
+	std::vector<Entity *> objs = Entity::getObjs();
+
+	if (!Menu::getEnableMouse())
+		return ;
+
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS && !pressed)
+		pressed = 1;
+	else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE)
+		pressed = 0;
+	
+	for (Entity *obj : objs)
+	{
+		if (obj->getColorId() == colorId)
+		{
+			if (pressed)
+			{
+				Entity::deselectAll();
+				obj->setSelected(true);
+				used = 1;
+			}
+		}
+	}
+	if (pressed && !used)
+		Entity::deselectAll();
+}
+
 void Render::manageKeys()
 {
     GLFWwindow *window = Opengl::getWindow();
@@ -288,11 +326,12 @@ void Render::manageKeys()
 			glfwGetCursorPos(window, &lastX, &lastY);
 			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 			Menu::setEnableMouse(0);
+			Entity::deselectAll();
 		}
 		else
 		{
 			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-			glfwSetCursorPos(window, WIDTH / 2, HEIGHT / 2);
+			glfwSetCursorPos(window, Opengl::getWidth() / 2, Opengl::getHeight() / 2);
 			Menu::setEnableMouse(1);
 		}
 		pressed = 1;

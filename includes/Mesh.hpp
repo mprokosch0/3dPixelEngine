@@ -25,6 +25,7 @@ class Mesh
 
 	public:
 		Mesh(const std::vector<float> &vertices, const std::vector<GLuint> &indices, const std::vector<GLuint> &indicesLine);
+		Mesh(const std::vector<float> &vertices, const std::vector<GLuint> &indices);
 		Mesh &operator=(Mesh const &rhs);
 		Mesh(Mesh const &rhs);
 		Mesh(void);
