@@ -205,6 +205,7 @@ void Entity::draw(int colorId) const
     this->_shader->setMat4("projection", projection);
     this->_shader->setMat4("camera", camera);
 	this->_shader->setInt("uline", 0);
+	this->_shader->setInt("selected", this->getSelected());
 	if (this->_selected)
 		colorId = 2;
     this->_mesh.draw(*this->_shader, colorId);

@@ -33,8 +33,11 @@ class Mesh
 		void						draw(const Shaders &shader, int flag) const;
 		std::vector<float>			getVertices() const;
 		void						newVbo(std::vector<float> &vertices) const;
+		void						setCenters(float x, float y, float z);
 		const std::array<float, 3>	&getCenters(void) const;
 		GLuint						getVao() const;
+		GLuint						getVbo() const;
+		GLuint						getEbo() const;
 };
 
 

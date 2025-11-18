@@ -87,11 +87,11 @@ Plane::~Plane(void) {}
 //constructors/destructors---------------------------------
 
 Triangle::Triangle(Shaders *shader, float pos[3], float rot[3], float scale[3]): Entity(shader, 
-	Mesh(std::vector<float>{
-			0.0f, -0.2722f,  0.5774f,
-			-0.5f, -0.2722f, -0.2887f,
-			0.5f, -0.2722f, -0.2887f,
-			0.0f, 0.5443f,  0.0f
+	Mesh(std::vector<float> {
+			0.0f, 0.0f,  0.57735027f,
+			-0.5f, 0.0f, -0.28867513f,
+			0.5f, 0.0f, -0.28867513f,
+			0.0f, 1.0f,  0.0f
 		},
 	std::vector<GLuint> {
 			0, 1, 2, 2, 1, 3,
@@ -147,6 +147,234 @@ void Hud::draw() const
 	Opengl::glBindVertexArray(this->_mesh.getVao());
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
+
+//Member functions-----------------------------------------
+
+//SPHERE-----------------------------------------------------------------------------
+
+//constructors/destructors---------------------------------
+
+struct Vertex {
+    float x, y, z;
+    float nx, ny, nz; // normales
+    float u, v;       // coordonnées UV
+};
+
+std::vector<float> generateSphereVertices(float radius, unsigned int latSeg, unsigned int lonSeg)
+{
+    std::vector<float> vertices;
+    for (unsigned int y = 0; y <= latSeg; ++y)
+	{
+        for (unsigned int x = 0; x <= lonSeg; ++x)
+		{
+            float u = (float)x / lonSeg;
+            float v = (float)y / latSeg;
+            float theta = u * 2.0f * M_PI;    // longitude
+            float phi   = v * M_PI;           // latitude
+
+            float sx = sin(phi) * cos(theta);
+            float sy = cos(phi);
+            float sz = sin(phi) * sin(theta);
+
+            Vertex vert;
+            vert.x = radius * sx;
+            vert.y = radius * sy;
+            vert.z = radius * sz;
+
+            vert.nx = sx;  // normales
+            vert.ny = sy;
+            vert.nz = sz;
+
+            vert.u = u;
+            vert.v = v;
+
+            vertices.push_back(vert.x);
+			vertices.push_back(vert.y);
+			vertices.push_back(vert.z);
+        }
+    }
+	return vertices;
+}
+
+std::vector<GLuint> generateSphereIndices(unsigned int latSeg, unsigned int lonSeg)
+{
+	std::vector<GLuint> indices;
+
+    for (unsigned int y = 0; y < latSeg; ++y)
+	{
+        for (unsigned int x = 0; x < lonSeg; ++x)
+		{
+            unsigned int i0 = y       * (lonSeg + 1) + x;
+            unsigned int i1 = (y + 1) * (lonSeg + 1) + x;
+            unsigned int i2 = (y + 1) * (lonSeg + 1) + (x + 1);
+            unsigned int i3 = y       * (lonSeg + 1) + (x + 1);
+
+            // Deux triangles par quad
+            indices.push_back(i0);
+            indices.push_back(i1);
+            indices.push_back(i2);
+
+            indices.push_back(i0);
+            indices.push_back(i2);
+            indices.push_back(i3);
+        }
+    }
+	return indices;
+}
+
+std::vector<GLuint> generateSphereLines(unsigned int latSeg, unsigned int lonSeg)
+{
+	std::vector<GLuint> indices;
+
+	for (unsigned int y = 0; y <= latSeg; ++y)
+	{
+        for (unsigned int x = 0; x < lonSeg; ++x)
+		{
+            unsigned int i0 = y * (lonSeg + 1) + x;
+            unsigned int i1 = i0 + 1;
+            indices.push_back(i0);
+            indices.push_back(i1); // ligne de longitude
+        }
+    }
+
+    for (unsigned int y = 0; y < latSeg; ++y)
+	{
+        for (unsigned int x = 0; x <= lonSeg; ++x)
+		{
+            unsigned int i0 = y * (lonSeg + 1) + x;
+            unsigned int i1 = (y + 1) * (lonSeg + 1) + x;
+            indices.push_back(i0);
+            indices.push_back(i1); // ligne de latitude
+        }
+    }
+
+	return indices;
+}
+
+
+Sphere::Sphere(Shaders *shader, float pos[3], float rot[3], float scale[3]): Entity(shader, 
+	Mesh(generateSphereVertices(10, 32, 32), generateSphereIndices(32, 32),
+			generateSphereLines(32, 32)), 0)
+{
+	this->_mesh.setCenters(0, 0, 0);
+	this->_pos[0] = pos[0];
+	this->_pos[1] = pos[1];
+	this->_pos[2] = pos[2];
+	this->_scale[0] = scale[0];
+	this->_scale[1] = scale[1];
+	this->_scale[2] = scale[2];
+	this->_rot[0] = rot[0];
+	this->_rot[1] = rot[1];
+	this->_rot[2] = rot[2];
+}
+
+Sphere::~Sphere(void) {}
+
+
+//Member functions-----------------------------------------
+
+//CYLINDER-----------------------------------------------------------------------------
+
+//constructors/destructors---------------------------------
+
+std::vector<float> generateCylinderVertices(float radius, float height, unsigned int radialSeg, unsigned int heightSeg)
+{
+    std::vector<float> vertices;
+    for (unsigned int y = 0; y <= heightSeg; ++y)
+    {
+        float v = (float)y / heightSeg;
+        float posY = v * height - height / 2.0f; // centre sur 0
+
+        for (unsigned int x = 0; x <= radialSeg; ++x)
+        {
+            float u = (float)x / radialSeg;
+            float theta = u * 2.0f * M_PI;
+
+            float sx = cos(theta);
+            float sz = sin(theta);
+
+            vertices.push_back(radius * sx);  // x
+            vertices.push_back(posY);         // y
+            vertices.push_back(radius * sz);  // z
+        }
+    }
+    return vertices;
+}
+
+
+std::vector<GLuint> generateCylinderIndices(unsigned int radialSeg, unsigned int heightSeg)
+{
+	std::vector<GLuint> indices;
+
+    for (unsigned int y = 0; y < heightSeg; ++y)
+    {
+        for (unsigned int x = 0; x < radialSeg; ++x)
+		{
+			unsigned int i0 = y       * (radialSeg + 1) + x;
+            unsigned int i1 = (y + 1) * (radialSeg + 1) + x;
+            unsigned int i2 = (y + 1) * (radialSeg + 1) + (x + 1);
+            unsigned int i3 = y       * (radialSeg + 1) + (x + 1);
+
+			indices.push_back(i0);
+            indices.push_back(i1);
+            indices.push_back(i2);
+
+            indices.push_back(i0);
+            indices.push_back(i2);
+            indices.push_back(i3);
+		}
+	}
+	return indices;
+}
+
+std::vector<GLuint> generateCylinderLines(unsigned int radialSeg, unsigned int heightSeg)
+{
+	std::vector<GLuint> indices;
+
+	for (unsigned int y = 0; y <= heightSeg; ++y)
+	{
+        for (unsigned int x = 0; x < radialSeg; ++x)
+		{
+            unsigned int i0 = y * (radialSeg + 1) + x;
+            unsigned int i1 = i0 + 1;
+            indices.push_back(i0);
+            indices.push_back(i1); // ligne de longitude
+        }
+    }
+
+    for (unsigned int y = 0; y < heightSeg; ++y)
+	{
+        for (unsigned int x = 0; x <= radialSeg; ++x)
+		{
+            unsigned int i0 = y * (radialSeg + 1) + x;
+            unsigned int i1 = (y + 1) * (radialSeg + 1) + x;
+            indices.push_back(i0);
+            indices.push_back(i1); // ligne de latitude
+        }
+    }
+
+	return indices;
+}
+
+
+Cylinder::Cylinder(Shaders *shader, float pos[3], float rot[3], float scale[3]): Entity(shader, 
+	Mesh(generateCylinderVertices(10, 10, 32, 10), generateCylinderIndices(32, 10),
+			generateCylinderLines(32, 10)), 0)
+{
+	this->_mesh.setCenters(0, 0, 0);
+	this->_pos[0] = pos[0];
+	this->_pos[1] = pos[1];
+	this->_pos[2] = pos[2];
+	this->_scale[0] = scale[0];
+	this->_scale[1] = scale[1];
+	this->_scale[2] = scale[2];
+	this->_rot[0] = rot[0];
+	this->_rot[1] = rot[1];
+	this->_rot[2] = rot[2];
+}
+
+Cylinder::~Cylinder(void) {}
+
 
 //Member functions-----------------------------------------
 
@@ -277,4 +505,58 @@ void Grid::draw() const
     this->_shader->setMat4("camera", camera);
 	Opengl::glBindVertexArray(this->_mesh.getVao());
 	glDrawElements(GL_LINES, 20 * 20 * 6, GL_UNSIGNED_INT, 0);
+}
+
+//GRID---------------------------------------------------------------------------------
+
+//constructors/destructors---------------------------------
+
+Text::Text(Shaders *shader): Entity(shader, Mesh(std::vector<float>{}, std::vector<GLuint>{}), 1)
+{}
+
+Text::~Text(void) {}
+
+//Member functions-----------------------------------------
+
+void	Text::draw(const char * text, float x, float y) const
+{
+	static std::vector<GLuint> indices;
+    static float buffer[99999];
+	float projection[16];
+	int j = 0;
+
+	(void)text, (void)x, (void)y;
+    //int num_quads = stb_easy_font_print(x, y, (char*)text, NULL, buffer, sizeof(buffer));
+	// int num_vertices = num_quads * 4;
+	// int num_indices = num_quads * 6;
+	// // for (size_t i = 0; i < 1000; i++)
+	// // {
+	// // 	std::cout << "buffer[" << i << "] = " << (int)buffer[i] << std::endl;
+	// // }
+	
+	// indices.resize(num_indices);
+	// for (int i = 0; i < num_vertices; i+=4)
+	// {
+	// 	indices[j++] = i;
+	// 	indices[j++] = i + 1;
+	// 	indices[j++] = i + 2;
+	// 	indices[j++] = i + 1;
+	// 	indices[j++] = i + 2;
+	// 	indices[j++] = i + 3;
+	// }
+	
+	// this->_shader->use();
+
+	// Opengl::glBindBuffer(GL_ARRAY_BUFFER, this->_mesh.getVbo());
+	// Opengl::glBufferSubData(this->_mesh.getVbo(), 0, num_vertices * 2 * sizeof(float), buffer);
+
+	// Opengl::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->_mesh.getEbo());
+	// Opengl::glBufferSubData(this->_mesh.getEbo(), 0, num_indices * sizeof(GLuint), indices.data());
+
+	// Render::project_pointsOrth(projection);
+	// projection[13] = 1;
+    // this->_shader->setMat4("projection", projection);
+
+	// Opengl::glBindVertexArray(this->_mesh.getVao());
+	// glDrawElements(GL_TRIANGLES, num_indices, GL_UNSIGNED_INT, 0);
 }

@@ -29,13 +29,13 @@ Mesh::Mesh(const std::vector<float> &vertices, const std::vector<GLuint> &indice
 
 	// buffer des sommets
 	Opengl::glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-	Opengl::glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
+	Opengl::glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_DYNAMIC_DRAW);
 	Opengl::glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
 	Opengl::glEnableVertexAttribArray(0);
 
 	//buffer des indices (faces)
 	Opengl::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ebo);
-	Opengl::glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLuint), indices.data(), GL_STATIC_DRAW);
+	Opengl::glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLuint), indices.data(), GL_DYNAMIC_DRAW);
 
 	Opengl::glBindVertexArray(0);
 	Opengl::glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -120,6 +120,13 @@ Mesh::~Mesh(void) {}
 
 //Member functions-----------------------------------------
 
+void	Mesh::setCenters(float x, float y, float z)
+{
+	this->_centers[0] = x;
+	this->_centers[1] = y;
+	this->_centers[2] = z;
+}
+
 void Mesh::draw(const Shaders &shader, int flag) const
 {
 	Opengl::glBindVertexArray(this->_vao);
@@ -151,4 +158,14 @@ std::vector<float> Mesh::getVertices() const
 GLuint Mesh::getVao() const
 {
 	return this->_vao;
+}
+
+GLuint Mesh::getVbo() const
+{
+	return this->_vbo;
+}
+
+GLuint Mesh::getEbo() const
+{
+	return this->_ebo;
 }

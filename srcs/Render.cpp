@@ -239,7 +239,7 @@ void Render::cameraMovePos(GLFWwindow *window)
     float rightX = cos(_angleX);
     float rightZ = sin(_angleX);
 
-	if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
 	{
 		speed *= 3;
 	}
@@ -269,7 +269,7 @@ void Render::cameraMovePos(GLFWwindow *window)
     }
 
 	//deplacement haut/bas
-	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+	if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
 	{
     	_tY += speed;
 	}
@@ -283,7 +283,7 @@ void Render::mouseControls(GLFWwindow *window, int colorId)
 {
 	static int pressed = 0;
 	int used = 0;
-	std::vector<Entity *> objs = Entity::getObjs();
+	std::vector<Entity *> &objs = Entity::getObjs();
 
 	if (!Menu::getEnableMouse())
 		return ;
@@ -293,17 +293,25 @@ void Render::mouseControls(GLFWwindow *window, int colorId)
 	else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE)
 		pressed = 0;
 	
-	for (Entity *obj : objs)
+	std::vector<Entity *>::iterator it = objs.end();
+	for (std::vector<Entity *>::iterator iter = objs.begin(); iter != objs.end(); iter++)
 	{
-		if (obj->getColorId() == colorId)
+		if ((*iter)->getColorId() == colorId)
 		{
 			if (pressed)
 			{
 				Entity::deselectAll();
-				obj->setSelected(true);
+				(*iter)->setSelected(true);
+				it = iter;
 				used = 1;
 			}
 		}
+	}
+	if (it != objs.end() && (*it)->getSelected() && (it + 1) != objs.end())
+	{
+		Entity *tmp = *it;
+		objs.erase(it);
+		objs.push_back(tmp);
 	}
 	if (pressed && !used)
 		Entity::deselectAll();

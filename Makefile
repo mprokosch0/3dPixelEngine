@@ -2,7 +2,7 @@ NAME = 3dPixelEngine
 
 CXX = c++
 
-CPPFLAGS = -Wall -Wextra -Werror -Iincludes -O3 -g
+CPPFLAGS = -Wextra -Werror -Iincludes -O3 -g
 
 LDFLAGS = -lglfw  -lGL -lm
 

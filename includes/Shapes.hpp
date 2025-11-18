@@ -25,6 +25,20 @@ class Plane: public Entity
 		~Plane(void);
 };
 
+class Sphere: public Entity
+{
+	public:
+		Sphere(Shaders *shader, float _pos[3], float _rot[3], float _scale[3]);
+		~Sphere(void);
+};
+
+class Cylinder: public Entity
+{
+	public:
+		Cylinder(Shaders *shader, float _pos[3], float _rot[3], float _scale[3]);
+		~Cylinder(void);
+};
+
 class Grid: public Entity
 {
 	public:
@@ -39,6 +53,14 @@ class Hud: public Entity
 		Hud(Shaders *shader, float x, float y, float lenX, float lenY);
 		~Hud(void);
 		void draw() const;
+};
+
+class Text: public Entity
+{
+	public:
+		Text(Shaders *shader);
+		~Text(void);
+		void draw(const char * text, float x, float y) const;
 };
 
 #endif

@@ -42,18 +42,19 @@ GLuint initFrameBuffer()
 
 static void	keyGestion(float &x, float &y, float &z)
 {
-	std::vector<Entity *> objs = Entity::getObjs();
-	if (!Menu::getEnableMouse())
-	{
-		objs[1]->setRot(x, y, z);
-		objs[3]->setRot(0, y, 0);
-		objs[4]->setRot(M_PI, y, 0);
-		objs[5]->setRot(x, 0, -M_PI / 2);
-		objs[6]->setRot(x, 0, M_PI / 2);
-		x += 0.07;
-		y += 0.07;
-		z += 0.07;
-	}
+	(void)x, (void)y, (void)z;
+	// std::vector<Entity *> objs = Entity::getObjs();
+	// if (!Menu::getEnableMouse())
+	// {
+	// 	objs[1]->setRot(x, y, z);
+	// 	objs[3]->setRot(0, y, 0);
+	// 	objs[4]->setRot(M_PI, y, 0);
+	// 	objs[5]->setRot(x, 0, -M_PI / 2);
+	// 	objs[6]->setRot(x, 0, M_PI / 2);
+	// 	x += 0.07;
+	// 	y += 0.07;
+	// 	z += 0.07;
+	// }
 	Render::manageKeys();
 }
 
@@ -63,16 +64,18 @@ static void drawNormal(GLuint buffer, Grid &grid, int pickedColor)
 	Opengl::glBindFramebuffer(GL_FRAMEBUFFER, buffer);
 	glViewport(0, 0, Opengl::getWidth(), Opengl::getHeight());
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	if (Menu::getEnableMouse())
+		grid.draw();
 	for (Entity *obj : objs)
 	{
 		obj->setUniformColor(0);
-		if (pickedColor == obj->getColorId() && Menu::getEnableMouse())
+		if (pickedColor == obj->getColorId() && Menu::getEnableMouse() && !obj->getSelected())
 			obj->draw(1);
+		else if (pickedColor == obj->getColorId() && Menu::getEnableMouse() && obj->getSelected())
+			obj->draw(2);
 		else
 			obj->draw(0);
 	}
-	if (Menu::getEnableMouse())
-		grid.draw();
 	Opengl::glBindVertexArray(0);
 }
 
@@ -90,9 +93,10 @@ static void drawPickColor(GLuint buffer)
 	Opengl::glBindVertexArray(0);
 }
 
-static void manageHud(Hud &hud)
+static void manageHud(Hud &hud, Text &text)
 {
 	const std::vector<Entity *> &objs = Entity::getObjs();
+	(void)hud, (void)text;
 	for (const Entity *obj : objs)
 	{
 		if (obj->getSelected())
@@ -103,7 +107,7 @@ static void manageHud(Hud &hud)
 	}
 }
 
-static void	drawScene(Grid &grid, Hud &hud, GLuint frameBuffer)
+static void	drawScene(Grid &grid, Hud &hud, Text &text, GLuint frameBuffer)
 {
 	static float x = 0, y = 0, z = 0;
 	double xpos, ypos;
@@ -121,12 +125,12 @@ static void	drawScene(Grid &grid, Hud &hud, GLuint frameBuffer)
 	Render::mouseControls(Opengl::getWindow(), pickedID);
 	drawNormal(0, grid, pickedID);
 	if (Menu::getEnableMouse())
-		manageHud(hud);
+		manageHud(hud, text);
 }
 
 int main()
 {
-	Shaders	base, sol, quad, hudS;
+	Shaders	base, sol, quad, hudS, textS;
 	int	width, height;
 	try
 	{
@@ -135,6 +139,7 @@ int main()
 		sol = Shaders("shaders/vertexShader.glsl", "shaders/fragmentShaderPlane.glsl");
 		quad = Shaders("shaders/vertexShader.glsl", "shaders/fragmentShaderGrid.glsl");
 		hudS = Shaders("shaders/vertexShaderHud.glsl", "shaders/fragmentShaderHud.glsl");
+		textS = Shaders("shaders/vertexShaderHud.glsl", "shaders/fragmentShaderText.glsl");
 	}
 	catch(const std::exception& e)
 	{
@@ -142,16 +147,20 @@ int main()
 		return 1;
 	}
 	Grid	grid(&quad);
+	Text	text(&textS);
 	Hud		hud(&hudS, 0, 0, 500, Opengl::getHeight());
 	Plane(&sol, (float []){-1, -1, -1}, (float []){0, 0, 0}, (float []){50, 1, 50});
 	Cube(&base, (float []){10, 10, 10}, (float []){0, 0, 0}, (float []){2, 2, 2});
 	Cube(&base, (float []){-10, 10, -10}, (float []){2, 0, 2}, (float []){2, 2, 2});
-	Triangle(&base, (float []){0, 0, 0}, (float []){0, 0, 0}, (float []){5, 5, 5});
-	Triangle(&base, (float []){0, 6, 0}, (float []){M_PI, 0, 0}, (float []){5, 5, 5});
-	Triangle(&base, (float []){3, 3, 0}, (float []){M_PI / 2, 0, -M_PI / 2}, (float []){5, 5, 5});
-	Triangle(&base, (float []){-3, 3, 0}, (float []){M_PI / 2, 0, M_PI / 2}, (float []){5, 5, 5});
+	// Triangle(&base, (float []){0, 0, 0}, (float []){0, 0, 0}, (float []){5, 5, 5});
+	Triangle(&base, (float []){0, 0.5, 0}, (float []){0, 0, 0}, (float []){0.7, 1, 0.7});
+	// Triangle(&base, (float []){0, 6, 0}, (float []){M_PI, 0, 0}, (float []){5, 5, 5});
+	// Triangle(&base, (float []){3, 3, 0}, (float []){M_PI / 2, 0, -M_PI / 2}, (float []){5, 5, 5});
+	// Triangle(&base, (float []){-3, 3, 0}, (float []){M_PI / 2, 0, M_PI / 2}, (float []){5, 5, 5});
+	Sphere(&base, (float []){-5, 0, -5}, (float []){0, 0, 0}, (float []){0.01, 0.01, 0.01});
+	Cylinder(&base, (float []){0, 0, 0}, (float []){0, 0, 0}, (float []){0.01, 0.1, 0.01});
 	glfwSetInputMode(Opengl::getWindow(), GLFW_STICKY_KEYS, GL_TRUE);
-	glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
+	glClearColor(0.4f, 0.4f, 0.4f, 0.0f);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glfwSetCursorPos(Opengl::getWindow(), Opengl::getWidth() / 2, Opengl::getHeight() / 2);
@@ -164,7 +173,7 @@ int main()
 		glEnable(GL_DEPTH_TEST);
 		glfwGetWindowSize(Opengl::getWindow(), &width, &height);
 		Opengl::setDim(width, height);
-		drawScene(grid, hud, frameBuffer);
+		drawScene(grid, hud, text, frameBuffer);
 		glfwSwapBuffers(Opengl::getWindow());
 		glfwPollEvents();
 	}
