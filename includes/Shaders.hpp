@@ -8,6 +8,7 @@
 class Shaders
 {
 	private:
+		static std::vector<Shaders *> _shaders;
 		GLuint	_id;
 
 	public:
@@ -15,7 +16,9 @@ class Shaders
 		Shaders(std::string vertexSrc, std::string fragmentSrc);
 		~Shaders(void);
 		GLuint	getId(void) const;
+		static const std::vector<Shaders *>	&getShaders();
 		void	use(void) const;
+		void	addBack();
 		void	supr(void) const;
 		void	setMat4(const std::string &name, const float *mat4) const;
 		void	setInt(const std::string &name, const int nb) const;

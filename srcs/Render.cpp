@@ -42,8 +42,8 @@ void	Render::rotate_z(float *mat)
 	float sinA = sinf(_angleZ);
 	mat[0]  = cosA; mat[1]  = -sinA; mat[2]  = 0; mat[3]  = 0;
 	mat[4]  = sinA; mat[5]  = cosA;  mat[6]  = 0; mat[7]  = 0;
-	mat[8]  = 0;	mat[9]  = 0;	 mat[10] = 1;  mat[11] = 0;
-	mat[12] = 0;	mat[13] = 0;	 mat[14] = 0;     mat[15] = 1;
+	mat[8]  = 0;	mat[9]  = 0;	 mat[10] = 1; mat[11] = 0;
+	mat[12] = 0;	mat[13] = 0;	 mat[14] = 0; mat[15] = 1;
 }
 
 void	Render::project_points(float *mat)

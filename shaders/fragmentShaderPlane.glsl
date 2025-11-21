@@ -6,6 +6,9 @@ uniform int selected;
 uniform float colorPickR;
 uniform float colorPickG;
 uniform float colorPickB;
+uniform float colorR;
+uniform float colorG;
+uniform float colorB;
 
 out vec4 FragColor;
 
@@ -14,8 +17,13 @@ void main()
     float alpha = (selected == 1) ? 0.5 : 1;
     if (uline == 0)
     {
-        if (colorPickB == 0 && colorPickG == 0 && colorPickR == 0)
-            FragColor = vec4(0.66, 0.2, 0.2, alpha);
+        if (colorPickB < 0 && colorPickG < 0 && colorPickR < 0)
+        {
+            if (colorB < 0 && colorG < 0 && colorR < 0)
+                FragColor = vec4(0.66, 0.2, 0.2, alpha);
+            else
+                FragColor = vec4(colorR, colorG, colorB, alpha);
+        }
         else
             FragColor = vec4(colorPickR, colorPickG, colorPickB, 1);
     }

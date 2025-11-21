@@ -48,6 +48,9 @@ typedef void	(*BINDRENDERBUFFER)(GLenum target, GLuint renderbuffer);
 typedef void	(*RENDERBUFFERSTORAGE)(GLenum target, GLenum internalformat, GLsizei width, GLsizei height);
 typedef void	(*FRAMEBUFFERRENDERBUFFER)(GLenum target, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer);
 typedef	GLenum	(*CHECKFRAMEBUFFERSTATUS)(GLenum target);
+typedef void	(*DELETERENDERBUFFERS)(GLsizei n, const GLuint *renderbuffers);
+typedef void	(*DELETETEXTURES)(GLsizei n, const GLuint *textures);
+typedef void	(*DELETEFRAMEBUFFERS)(GLsizei n, const GLuint *framebuffers);
 
 
 
@@ -101,6 +104,9 @@ class Opengl
 		static RENDERBUFFERSTORAGE			glRenderbufferStorage;
 		static FRAMEBUFFERRENDERBUFFER		glFramebufferRenderbuffer;
 		static CHECKFRAMEBUFFERSTATUS		glCheckFramebufferStatus;
+		static DELETERENDERBUFFERS			glDeleteRenderbuffers;
+		static DELETETEXTURES				glDeleteTextures;
+		static DELETEFRAMEBUFFERS			glDeleteFramebuffers;
 
 	public:
 		static GLFWwindow	*getWindow(void);

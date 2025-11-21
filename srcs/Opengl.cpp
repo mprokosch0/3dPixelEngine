@@ -39,6 +39,9 @@ BINDRENDERBUFFER            Opengl::glBindRenderbuffer = nullptr;
 RENDERBUFFERSTORAGE         Opengl::glRenderbufferStorage = nullptr;
 FRAMEBUFFERRENDERBUFFER     Opengl::glFramebufferRenderbuffer = nullptr;
 CHECKFRAMEBUFFERSTATUS      Opengl::glCheckFramebufferStatus = nullptr;
+DELETERENDERBUFFERS         Opengl::glDeleteRenderbuffers = nullptr;
+DELETETEXTURES              Opengl::glDeleteTextures = nullptr;
+DELETEFRAMEBUFFERS          Opengl::glDeleteFramebuffers = nullptr;
 
 //constructors/destructors---------------------------------
 
@@ -138,6 +141,9 @@ int Opengl::loadGLFunctions()
     glRenderbufferStorage = (RENDERBUFFERSTORAGE)glfwGetProcAddress("glRenderbufferStorage");
     glFramebufferRenderbuffer = (FRAMEBUFFERRENDERBUFFER)glfwGetProcAddress("glFramebufferRenderbuffer");
     glCheckFramebufferStatus = (CHECKFRAMEBUFFERSTATUS)glfwGetProcAddress("glCheckFramebufferStatus");
+    glDeleteRenderbuffers = (DELETERENDERBUFFERS)glfwGetProcAddress("glDeleteRenderbuffers");
+    glDeleteTextures = (DELETETEXTURES)glfwGetProcAddress("glDeleteTextures");
+    glDeleteFramebuffers = (DELETEFRAMEBUFFERS)glfwGetProcAddress("glDeleteFramebuffers");
     if (!glCreateShader || !glShaderSource || !glCompileShader)
 	{
         std::cerr << "Erreur: certaines fonctions OpenGL modernes ne sont pas dispo.\n";

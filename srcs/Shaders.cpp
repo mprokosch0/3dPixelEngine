@@ -1,5 +1,7 @@
 #include "Shaders.hpp"
 
+std::vector<Shaders *>	Shaders::_shaders;
+
 //constructors/destructors---------------------------------
 
 Shaders::Shaders(void): _id(0){}
@@ -19,6 +21,16 @@ Shaders::Shaders(std::string vertexSrc, std::string fragmentSrc)
 Shaders::~Shaders(void) {}
 
 //Member functions-----------------------------------------
+
+const std::vector<Shaders *>	&Shaders::getShaders()
+{
+	return _shaders;
+}
+
+void Shaders::addBack()
+{
+	_shaders.push_back(this);
+}
 
 void Shaders::setMat4(const std::string &name, const float *mat4) const
 {

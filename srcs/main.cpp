@@ -34,16 +34,15 @@ GLuint initFrameBuffer()
 		printf("Erreur : FBO de picking non complet !\n");
 
 	Opengl::glBindFramebuffer(GL_FRAMEBUFFER, 0); // détacher
-	//Opengl::glDeleteRenderbuffers(1, &pickingDepth);
-	//Opengl::glDeleteTextures(1, &pickingTexture);
-	//Opengl::glDeleteFramebuffers(1, &pickingFBO);
+	Opengl::glDeleteRenderbuffers(1, &pickingDepth);
+	Opengl::glDeleteTextures(1, &pickingTexture);
 	return pickingFBO;
 }
 
 static void	keyGestion(float &x, float &y, float &z)
 {
 	(void)x, (void)y, (void)z;
-	// std::vector<Entity *> objs = Entity::getObjs();
+	std::vector<Entity *> objs = Entity::getObjs();
 	// if (!Menu::getEnableMouse())
 	// {
 	// 	objs[1]->setRot(x, y, z);
@@ -68,6 +67,12 @@ static void drawNormal(GLuint buffer, Grid &grid, int pickedColor)
 		grid.draw();
 	for (Entity *obj : objs)
 	{
+		if (Menu::getEnableMouse() && obj->getSelected())
+		{
+			Mesh tmp = obj->getMesh();
+			Gizmo::setObj(tmp.getCenters(), tmp.getPos(), tmp.getRot(), tmp.getScale());
+			Gizmo::draw(0);
+		}
 		obj->setUniformColor(0);
 		if (pickedColor == obj->getColorId() && Menu::getEnableMouse() && !obj->getSelected())
 			obj->draw(1);
@@ -136,10 +141,15 @@ int main()
 	{
 		Opengl::initiateWindow("engine");
 		base = Shaders("shaders/vertexShader.glsl", "shaders/fragmentShader.glsl");
+		base.addBack();
 		sol = Shaders("shaders/vertexShader.glsl", "shaders/fragmentShaderPlane.glsl");
+		sol.addBack();
 		quad = Shaders("shaders/vertexShader.glsl", "shaders/fragmentShaderGrid.glsl");
+		quad.addBack();
 		hudS = Shaders("shaders/vertexShaderHud.glsl", "shaders/fragmentShaderHud.glsl");
+		hudS.addBack();
 		textS = Shaders("shaders/vertexShaderHud.glsl", "shaders/fragmentShaderText.glsl");
+		textS.addBack();
 	}
 	catch(const std::exception& e)
 	{
@@ -148,17 +158,12 @@ int main()
 	}
 	Grid	grid(&quad);
 	Text	text(&textS);
+	Gizmo::genGiz();
 	Hud		hud(&hudS, 0, 0, 500, Opengl::getHeight());
-	Plane(&sol, (float []){-1, -1, -1}, (float []){0, 0, 0}, (float []){50, 1, 50});
-	Cube(&base, (float []){10, 10, 10}, (float []){0, 0, 0}, (float []){2, 2, 2});
-	Cube(&base, (float []){-10, 10, -10}, (float []){2, 0, 2}, (float []){2, 2, 2});
-	// Triangle(&base, (float []){0, 0, 0}, (float []){0, 0, 0}, (float []){5, 5, 5});
-	Triangle(&base, (float []){0, 0.5, 0}, (float []){0, 0, 0}, (float []){0.7, 1, 0.7});
-	// Triangle(&base, (float []){0, 6, 0}, (float []){M_PI, 0, 0}, (float []){5, 5, 5});
-	// Triangle(&base, (float []){3, 3, 0}, (float []){M_PI / 2, 0, -M_PI / 2}, (float []){5, 5, 5});
-	// Triangle(&base, (float []){-3, 3, 0}, (float []){M_PI / 2, 0, M_PI / 2}, (float []){5, 5, 5});
-	Sphere(&base, (float []){-5, 0, -5}, (float []){0, 0, 0}, (float []){0.01, 0.01, 0.01});
-	Cylinder(&base, (float []){0, 0, 0}, (float []){0, 0, 0}, (float []){0.01, 0.1, 0.01});
+	Plane(&sol, -1, -1, -1, 0, 0, 0, 50, 1, 50, 0);
+	Cube(&base, 0, 10, 0, M_PI_4, 0, 0, 2, 2, 2, 0);
+	Cube(&base, 10, 5, 10, 0, 0, 0, 8, 8, 8, 0);
+	Cone(&base, -10, 0, -10, 0, 0, 0, 10, 10, 10, 0);
 	glfwSetInputMode(Opengl::getWindow(), GLFW_STICKY_KEYS, GL_TRUE);
 	glClearColor(0.4f, 0.4f, 0.4f, 0.0f);
 	glEnable(GL_BLEND);
@@ -180,6 +185,7 @@ int main()
 
 	base.supr();
 	sol.supr();
+	Opengl::glDeleteFramebuffers(1, &frameBuffer);
 	glfwDestroyWindow(Opengl::getWindow());
 	glfwTerminate();
 	return (0);
