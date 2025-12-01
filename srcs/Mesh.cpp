@@ -99,7 +99,6 @@ Mesh Mesh::operator+(Mesh const &rhs) const
 		vert[i + 1] += this->_pos[1];
 		vert[i + 2] += this->_pos[2];
 	}
-
 	cx = cosf(rhs._rot[0]);
     sx = sinf(rhs._rot[0]);
     cy = cosf(rhs._rot[1]);

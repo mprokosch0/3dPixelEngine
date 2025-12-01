@@ -3,7 +3,7 @@
 # define RENDER_HPP
 
 # include "Shaders.hpp"
-# include "Entity.hpp"
+# include "Shapes.hpp"
 # include <cmath>
 
 # ifndef M_PI
@@ -20,6 +20,7 @@ class Render
 	private:
 		Render(void);
 		~Render();
+		static void	moveGizmo(double &lastX, double &lastY);
 		static void mouseCalculs(double posX, double posY, double &lastX, double &lastY, double sensitivity);
 		static void cameraMoveAngle(GLFWwindow *window, double &lastX, double &lastY);
 		static void cameraMovePos(GLFWwindow *window);
@@ -49,6 +50,7 @@ class Render
 		static void		center_obj(float *mat);
 		static void		translate_obj(float *mat);
 		static void		identityMat4(float *mat);
+		static bool		invertMat4(const float mat4[16], float invOut[16]);
 		static void		multiply4(float *a, float *b, float *result);
 		static float	getTx();
 		static float	getTy();

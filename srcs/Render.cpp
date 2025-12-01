@@ -1,5 +1,7 @@
 #include "Render.hpp"
 
+double lastX = WIDTH / 2, lastY = HEIGHT / 2;
+
 float	Render::_angleX = 0;
 float	Render::_angleY = 0;
 float	Render::_angleZ = 0;
@@ -51,7 +53,7 @@ void	Render::project_points(float *mat)
 	float	ratio = (float)Opengl::getWidth() / (float)Opengl::getHeight();
 	float	fov = 90.0f * (M_PI / 180);
 	float	near = 0.1f;
-	float	far = 1000.0f;
+	float	far = 10000.0f;
 	float t = tanf(fov / 2.0f);
 
 	mat[0]  = 1 / (ratio * t); mat[1]  = 0;		mat[2]  = 0;								mat[3]  = 0;
@@ -141,10 +143,10 @@ void Render::multiply4(float *a, float *b, float *result)
 		for (int j = 0; j < 4; ++j)
 		{
 			result[i*4 + j] =
-				a[i*4 + 0] * b[0*4 + j] +
-				a[i*4 + 1] * b[1*4 + j] +
-				a[i*4 + 2] * b[2*4 + j] +
-				a[i*4 + 3] * b[3*4 + j];
+				a[i * 4 + 0] * b[0 * 4 + j] +
+				a[i * 4 + 1] * b[1 * 4 + j] +
+				a[i * 4 + 2] * b[2 * 4 + j] +
+				a[i * 4 + 3] * b[3 * 4 + j];
 		}
 	}
 }
@@ -281,46 +283,312 @@ void Render::cameraMovePos(GLFWwindow *window)
 
 void Render::mouseControls(GLFWwindow *window, int colorId)
 {
-	static int pressed = 0;
-	int used = 0;
-	std::vector<Entity *> &objs = Entity::getObjs();
+    static bool pressed = false;
+    static bool gizmoLocked = false;
 
-	if (!Menu::getEnableMouse())
-		return ;
+    std::vector<Entity *> &objs = Entity::getObjs();
+    std::array<Entity, 4> &gizmo = Gizmo::getGizmo();
 
-	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS && !pressed)
-		pressed = 1;
-	else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE)
-		pressed = 0;
-	
-	std::vector<Entity *>::iterator it = objs.end();
-	for (std::vector<Entity *>::iterator iter = objs.begin(); iter != objs.end(); iter++)
-	{
-		if ((*iter)->getColorId() == colorId)
-		{
-			if (pressed)
-			{
-				Entity::deselectAll();
-				(*iter)->setSelected(true);
-				it = iter;
-				used = 1;
-			}
-		}
-	}
-	if (it != objs.end() && (*it)->getSelected() && (it + 1) != objs.end())
-	{
-		Entity *tmp = *it;
-		objs.erase(it);
-		objs.push_back(tmp);
-	}
-	if (pressed && !used)
-		Entity::deselectAll();
+    if (!Menu::getEnableMouse())
+        return;
+
+    bool mouseDown = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
+
+    if (mouseDown && !pressed)
+        pressed = true;
+    else if (!mouseDown && pressed)
+    {
+        pressed = false;
+        gizmoLocked = false;
+    }
+
+    if (gizmoLocked && pressed)
+    {
+		Render::moveGizmo(lastX, lastY);
+        return;
+    }
+
+    int used = 0;
+    std::vector<Entity *>::iterator it = objs.end();
+	int it2 = 4;
+    // ------------ PICKING GIZMO -------------
+    for (int iter = 0; iter != 4; iter++)
+    {
+        if (gizmo[iter].getColorId() == colorId)
+        {
+            if (pressed)
+            {
+                Gizmo::deselectAll();
+                gizmo[iter].setSelected(true);
+				glfwGetCursorPos(window, &lastX, &lastY);
+                used = 1;
+                gizmoLocked = true;
+				it2 = iter;
+            }
+        }
+    }
+
+    // ------------ PICKING OBJETS -------------
+    if (!used)
+    {
+        for (auto iter = objs.begin(); iter != objs.end(); iter++)
+        {
+            if ((*iter)->getColorId() == colorId)
+            {
+                if (pressed)
+                {
+                    if (!(*iter)->getGizmo())
+					{
+                        Entity::deselectAll();
+						Gizmo::deselectAll();
+					}
+
+                    (*iter)->setSelected(true);
+                    it = iter;
+                    used = 1;
+                }
+            }
+        }
+    }
+
+    if (it != objs.end() && !(*it)->getGizmo() && (*it)->getSelected() && (it + 1) != objs.end())
+    {
+        Entity *tmp = *it;
+        objs.erase(it);
+        objs.push_back(tmp);
+    }
+
+	if (it2 != 4 && gizmo[it2].getGizmo() && gizmo[it2].getSelected() && (it2 + 1) != 4)
+    {
+        Entity tmp = gizmo[it2];
+		std::array<int, 4> arpos = Gizmo::getArrPos();
+		int tmp2 = arpos[it2];
+		arpos[it2] = arpos[3];
+		arpos[3] = tmp2;
+		Gizmo::setArrPos(arpos);
+        gizmo[it2] = gizmo[3];
+        gizmo[3] = tmp;
+    }
+
+    if (pressed && !used)
+    {
+        Entity::deselectAll();
+        Gizmo::deselectAll();
+    }
 }
+bool Render::invertMat4(const float m[16], float invOut[16])
+{
+    float inv[16];
+
+    inv[0] = m[5]  * m[10] * m[15] - 
+             m[5]  * m[11] * m[14] - 
+             m[9]  * m[6]  * m[15] + 
+             m[9]  * m[7]  * m[14] +
+             m[13] * m[6]  * m[11] - 
+             m[13] * m[7]  * m[10];
+
+    inv[4] = -m[4]  * m[10] * m[15] + 
+              m[4]  * m[11] * m[14] + 
+              m[8]  * m[6]  * m[15] - 
+              m[8]  * m[7]  * m[14] - 
+              m[12] * m[6]  * m[11] + 
+              m[12] * m[7]  * m[10];
+
+    inv[8] = m[4]  * m[9] * m[15] - 
+             m[4]  * m[11] * m[13] - 
+             m[8]  * m[5] * m[15] + 
+             m[8]  * m[7] * m[13] +
+             m[12] * m[5] * m[11] - 
+             m[12] * m[7] * m[9];
+
+    inv[12] = -m[4]  * m[9] * m[14] + 
+               m[4]  * m[10] * m[13] +
+               m[8]  * m[5] * m[14] - 
+               m[8]  * m[6] * m[13] - 
+               m[12] * m[5] * m[10] + 
+               m[12] * m[6] * m[9];
+
+    inv[1] = -m[1]  * m[10] * m[15] + 
+              m[1]  * m[11] * m[14] + 
+              m[9]  * m[2] * m[15] - 
+              m[9]  * m[3] * m[14] - 
+              m[13] * m[2] * m[11] + 
+              m[13] * m[3] * m[10];
+
+    inv[5] = m[0]  * m[10] * m[15] - 
+             m[0]  * m[11] * m[14] - 
+             m[8]  * m[2] * m[15] + 
+             m[8]  * m[3] * m[14] +
+             m[12] * m[2] * m[11] - 
+             m[12] * m[3] * m[10];
+
+    inv[9] = -m[0]  * m[9] * m[15] + 
+              m[0]  * m[11] * m[13] + 
+              m[8]  * m[1] * m[15] - 
+              m[8]  * m[3] * m[13] - 
+              m[12] * m[1] * m[11] + 
+              m[12] * m[3] * m[9];
+
+    inv[13] = m[0]  * m[9] * m[14] - 
+              m[0]  * m[10] * m[13] - 
+              m[8]  * m[1] * m[14] + 
+              m[8]  * m[2] * m[13] +
+              m[12] * m[1] * m[10] - 
+              m[12] * m[2] * m[9];
+
+    inv[2] = m[1]  * m[6] * m[15] - 
+             m[1]  * m[7] * m[14] - 
+             m[5]  * m[2] * m[15] + 
+             m[5]  * m[3] * m[14] +
+             m[13] * m[2] * m[7] - 
+             m[13] * m[3] * m[6];
+
+    inv[6] = -m[0]  * m[6] * m[15] + 
+              m[0]  * m[7] * m[14] + 
+              m[4]  * m[2] * m[15] - 
+              m[4]  * m[3] * m[14] - 
+              m[12] * m[2] * m[7] + 
+              m[12] * m[3] * m[6];
+
+    inv[10] = m[0]  * m[5] * m[15] - 
+              m[0]  * m[7] * m[13] - 
+              m[4]  * m[1] * m[15] + 
+              m[4]  * m[3] * m[13] +
+              m[12] * m[1] * m[7] - 
+              m[12] * m[3] * m[5];
+
+    inv[14] = -m[0]  * m[5] * m[14] + 
+               m[0]  * m[6] * m[13] + 
+               m[4]  * m[1] * m[14] - 
+               m[4]  * m[2] * m[13] - 
+               m[12] * m[1] * m[6] + 
+               m[12] * m[2] * m[5];
+
+    inv[3] = -m[1] * m[6] * m[11] + 
+              m[1] * m[7] * m[10] + 
+              m[5] * m[2] * m[11] - 
+              m[5] * m[3] * m[10] - 
+              m[9] * m[2] * m[7] + 
+              m[9] * m[3] * m[6];
+
+    inv[7] = m[0] * m[6] * m[11] - 
+             m[0] * m[7] * m[10] - 
+             m[4] * m[2] * m[11] + 
+             m[4] * m[3] * m[10] +
+             m[8] * m[2] * m[7] - 
+             m[8] * m[3] * m[6];
+
+    inv[11] = -m[0] * m[5] * m[11] + 
+               m[0] * m[7] * m[9] + 
+               m[4] * m[1] * m[11] - 
+               m[4] * m[3] * m[9] - 
+               m[8] * m[1] * m[7] + 
+               m[8] * m[3] * m[5];
+
+    inv[15] = m[0] * m[5] * m[10] - 
+              m[0] * m[6] * m[9] - 
+              m[4] * m[1] * m[10] + 
+              m[4] * m[2] * m[9] +
+              m[8] * m[1] * m[6] - 
+              m[8] * m[2] * m[5];
+
+    float det = m[0] * inv[0] + m[1] * inv[4] + m[2] * inv[8] + m[3] * inv[12];
+
+    if (det == 0)
+        return false;
+
+    det = 1.0 / det;
+
+    for (int i = 0; i < 16; i++)
+        invOut[i] = inv[i] * det;
+
+    return true;
+}
+
+static bool	unprojectMouse(double x, double y, double z, double &rx, double &ry, double &rz)
+{
+	float	view[16], projection[16], unproj[16], tmp[16], w;
+	std::array<double, 4> co = {x, y, z, 1};
+
+	co[0] = (co[0] / Opengl::getWidth()) * 2.0f - 1.0f;
+	co[1] = 1.0f - (co[1] / Opengl::getHeight()) * 2.0f;
+	co[2] = co[2] * 2.0 - 1.0;
+
+	Render::project_points(projection);
+	Render::lookAt(view, 0, 0, 0, 0, 0, -1, 0, 1, 0);
+	Render::multiply4(projection, view, tmp);
+
+	if (!Render::invertMat4(tmp, unproj))
+		return false;
+	
+	rx = unproj[0] * co[0] + unproj[4] * co[1] + unproj[8] * co[2] + unproj[12] * co[3];
+	ry = unproj[1] * co[0] + unproj[5] * co[1] + unproj[9] * co[2] + unproj[13] * co[3];
+	rz = unproj[2] * co[0] + unproj[6] * co[1] + unproj[10] * co[2] + unproj[14] * co[3];
+	w = unproj[3] * co[0] + unproj[7] * co[1] + unproj[11] * co[2] + unproj[15] * co[3];
+	if (w == 0)
+		return false;
+	rx /= w;
+	ry /= w;
+	rz /= w;
+	return true;
+}
+
+void Render::moveGizmo(double &lastX, double &lastY)
+{
+    double mouseX, mouseY;
+    Entity *obj = Gizmo::getObj();
+    auto pos = obj->getMesh().getPos();
+    std::array<double,3> axis = {0, 0, 0}, axisWorld;
+    int index = Gizmo::getArrPos()[3];
+
+    if (index-- == 0)
+        return ;
+    axis[index] = 1.0;
+
+    glfwGetCursorPos(Opengl::getWindow(), &mouseX, &mouseY);
+
+    double dx = mouseX - lastX;
+    double dy = -( mouseY - lastY);
+
+    std::array<double, 3> center = {pos[0], pos[1], pos[2]},
+                          tip = {center[0] + axis[0], center[1] + axis[1], center[2] + axis[2]}, vecPos, vec;
+   
+	Gizmo::getGizmo()[3].projectArrow(center, tip);
+   
+    center[0] = (center[0] * 0.5 + 0.5) * Opengl::getWidth();
+    center[1] = (center[1] * 0.5 + 0.5) * Opengl::getHeight();
+    tip[0] = (tip[0] * 0.5 + 0.5) * Opengl::getWidth();
+    tip[1] = (tip[1] * 0.5 + 0.5) * Opengl::getHeight();
+
+   
+    double axisScreenX = tip[0] - center[0];
+    double axisScreenY = tip[1] - center[1];
+    std::cout << axisScreenX << ", " << axisScreenY << std::endl;
+    double len = sqrt(axisScreenX*axisScreenX + axisScreenY*axisScreenY);
+    if (len < 1e-9)
+        return;
+    axisScreenX /= len;
+    axisScreenY /= len;
+
+    double moveAmount = (dx*axisScreenX + dy*axisScreenY) * 0.01;
+    if (!moveAmount)
+        return ;
+    obj->turnAxis(axis, axisWorld);
+
+    double gx = axisWorld[0], gy = axisWorld[1], gz = axisWorld[2];
+
+    obj->setPos(pos[0] + gx*moveAmount,
+                pos[1] + gy*moveAmount,
+                pos[2] + gz*moveAmount);
+
+    lastX = mouseX;
+    lastY = mouseY;
+}
+
 
 void Render::manageKeys()
 {
     GLFWwindow *window = Opengl::getWindow();
-	static double lastX, lastY;
 	static int pressed = 0;
 
 	Render::cameraMoveAngle(window, lastX, lastY);

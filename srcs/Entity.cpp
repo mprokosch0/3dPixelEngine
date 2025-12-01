@@ -56,6 +56,11 @@ Entity::~Entity(void) {}
 
 //Member functions-----------------------------------------
 
+bool	Entity::getGizmo(void) const
+{
+	return this->_isGizmo;
+}
+
 void	Entity::setGizmo(bool flag)
 {
 	this->_isGizmo = flag;
@@ -103,6 +108,11 @@ void	Entity::setSelected(bool select)
 	this->_selected = select;
 }
 
+void	Entity::setCenter(float x, float y, float z)
+{
+	this->_mesh.setCenters(x, y, z);
+}
+
 std::vector<Entity *> &Entity::getObjs(void)
 {
 	return _objs;
@@ -123,7 +133,13 @@ void	Entity::scale(float *mat) const
 {
 	std::array<float, 3> _scale = this->_mesh.getScale();
 	float scaleX = _scale[0], scaleY= _scale[1], scaleZ = _scale[2];
-
+	if (this->_isGizmo)
+	{
+		float tmp = fmax(fmax(Gizmo::getScale()[0], Gizmo::getScale()[1]), Gizmo::getScale()[2]);
+		scaleX *= tmp;
+		scaleY *= tmp;
+		scaleZ *= tmp;
+	}
 	mat[0]  = scaleX;		mat[1]  = 0;			mat[2]  = 0;			mat[3]  = 0;
 	mat[4]  = 0;			mat[5]  = scaleY;		mat[6]  = 0;			mat[7]  = 0;
 	mat[8]  = 0;			mat[9]  = 0;			mat[10] = scaleZ;		mat[11] = 0;
@@ -210,47 +226,44 @@ void Entity::setUniformColor(int flag)
 	this->_shader->setFloat("colorB", this->_color[2]);
 }
 
+void Entity::turnAxis(std::array<double, 3> center, std::array<double, 3> &tip)
+{ 
+	float rotX[16], rotY[16], rotZ[16];
+	float temp[16], temp2[16];
+	std::array<double, 3> res;
 
-void Entity::draw(int colorId) const
-{
-    float rotX[16], rotY[16], rotZ[16];
+
+	this->rotate_x(rotX);
+	this->rotate_y(rotY);
+	this->rotate_z(rotZ);
+
+	Render::multiply4(rotY, rotX, temp);
+	Render::multiply4(rotZ, temp, temp2);
+
+	res[0] = temp2[0] * center[0] + temp2[4] * center[1] + temp2[8] * center[2];
+	res[1] = temp2[1] * center[0] + temp2[5] * center[1] + temp2[9] * center[2];
+	res[2] = temp2[2] * center[0] + temp2[6] * center[1] + temp2[10] * center[2];
+	double L = sqrt(res[0]*res[0] + res[1]*res[1] + res[2]*res[2]);
+	if (fabs(L) < 1e-9)
+		tip = {0, 0, 0};
+	else
+		tip = {res[0] / L, res[1] / L, res[2] / L};
+}
+
+void Entity::projectArrow(std::array<double, 3> &center, std::array<double, 3> &tip)
+{ 
+	float rotX[16], rotY[16], rotZ[16];
     float worldRotX[16], worldRotY[16], worldRotZ[16];
     float translate[16], wTranslate[16], scale[16];
-	float temp[16], temp2[16], locModel[16], wModel[16];;
+	float temp[16], temp2[16], locModel[16], wModel[16];
     float projection[16], camera[16];
-	float toCenter[16], backToCenter[16];
-
-    this->_shader->use();
-
-	std::array<float, 3> _pos = this->_mesh.getPos();
-
-	Render::identityMat4(toCenter);
-	if (!this->_isGizmo)
-	{
-		toCenter[12] = -this->_mesh.getCenters()[0] - _pos[0];
-		toCenter[13] = -this->_mesh.getCenters()[1] - _pos[1];
-		toCenter[14] = -this->_mesh.getCenters()[2] - _pos[2];
-	}
-	Render::identityMat4(backToCenter);
-	if (!this->_isGizmo)
-	{
-		backToCenter[12] = this->_mesh.getCenters()[0] + _pos[0];
-		backToCenter[13] = this->_mesh.getCenters()[1] + _pos[1];
-		backToCenter[14] = this->_mesh.getCenters()[2] + _pos[2];
-	}
-
+	std::array<double, 3> res;
 
     Render::translate_obj(wTranslate);
 	Render::identityMat4(translate);
-    translate[12] += _pos[0];
-    translate[13] += _pos[1];
-    translate[14] += _pos[2];
-	if (this->_isGizmo)
-	{
-		translate[12] = Gizmo::getPos()[0];
-		translate[13] = Gizmo::getPos()[1];
-		translate[14] = Gizmo::getPos()[2];
-	}
+	translate[12] = Gizmo::getPos()[0];
+	translate[13] = Gizmo::getPos()[1];
+	translate[14] = Gizmo::getPos()[2];
 
 	this->rotate_x(rotX);
 	this->rotate_y(rotY);
@@ -264,26 +277,145 @@ void Entity::draw(int colorId) const
     Render::project_points(projection);
     Render::lookAt(camera, 0, 0, 0, 0, 0, -1, 0, 1, 0);
 
-	if (!this->_isGizmo)
-	{
-		Render::multiply4(rotY, rotX, temp);
-		Render::multiply4(rotZ, temp, temp2);
-		Render::multiply4(toCenter, temp2, temp);
-		Render::multiply4(temp, scale, temp2);
-		Render::multiply4(temp2, backToCenter, temp);
-		Render::multiply4(translate, temp, locModel);
-	}
+	Render::multiply4(rotY, rotX, temp);
+	Render::multiply4(rotZ, temp, temp2);
+	Render::multiply4(temp2, scale, temp);
+	Render::multiply4(temp, translate, locModel);
+
+	Render::multiply4(worldRotY, worldRotX, temp);
+	Render::multiply4(worldRotZ, temp, temp2);
+	Render::multiply4(wTranslate, temp2, wModel);
+	Render::multiply4(wModel, locModel, temp);
+
+	res[0] = temp[0] * center[0] + temp[4] * center[1] + temp[8] * center[2] + temp[12];
+	res[1] = temp[1] * center[0] + temp[5] * center[1] + temp[9] * center[2] + temp[13];
+	res[2] = temp[2] * center[0] + temp[6] * center[1] + temp[10] * center[2] + temp[14];
+	res[3] = temp[3] * center[0] + temp[7] * center[1] + temp[11] * center[2] + temp[15];
+	if (fabs(res[3]) > 1e-9)
+		center = { res[0] / res[3], res[1] / res[3], res[2] / res[3] };
 	else
-	{
-		Render::multiply4(rotY, rotX, temp);
-		Render::multiply4(rotZ, temp, temp2);
-		Render::multiply4(temp2, scale, temp);
-		Render::multiply4(temp, translate, locModel);
-	}
+		center = { res[0], res[1], res[2] };
+
+	res[0] = temp[0] * tip[0] + temp[4] * tip[1] + temp[8] * tip[2] + temp[12];
+	res[1] = temp[1] * tip[0] + temp[5] * tip[1] + temp[9] * tip[2] + temp[13];
+	res[2] = temp[2] * tip[0] + temp[6] * tip[1] + temp[10] * tip[2] + temp[14];
+	res[3] = temp[3] * tip[0] + temp[7] * tip[1] + temp[11] * tip[2] + temp[15];
+	if (fabs(res[3]) > 1e-9)
+		tip = { res[0] / res[3], res[1] / res[3], res[2] / res[3] };
+	else
+		tip = { res[0], res[1], res[2] };
+}
+
+void Entity::drawGizmo(int colorId) const
+{
+    float rotX[16], rotY[16], rotZ[16];
+    float worldRotX[16], worldRotY[16], worldRotZ[16];
+    float translate[16], wTranslate[16], scale[16];
+	float temp[16], temp2[16], locModel[16], wModel[16];;
+    float projection[16], camera[16];
+    this->_shader->use();
+
+    Render::translate_obj(wTranslate);
+	Render::identityMat4(translate);
+	translate[12] = Gizmo::getPos()[0];
+	translate[13] = Gizmo::getPos()[1];
+	translate[14] = Gizmo::getPos()[2];
+
+	this->rotate_x(rotX);
+	this->rotate_y(rotY);
+	this->rotate_z(rotZ);
+	
+	this->scale(scale);
+    Render::rotate_x(worldRotX);
+    Render::rotate_y(worldRotY);
+    Render::rotate_z(worldRotZ);
+
+    Render::project_points(projection);
+    Render::lookAt(camera, 0, 0, 0, 0, 0, -1, 0, 1, 0);
+
+	Render::multiply4(rotY, rotX, temp);
+	Render::multiply4(rotZ, temp, temp2);
+	Render::multiply4(temp2, scale, temp);
+	Render::multiply4(temp, translate, locModel);
+
 	Render::multiply4(worldRotY, worldRotX, temp);
 	Render::multiply4(worldRotZ, temp, temp2);
 	Render::multiply4(wTranslate, temp2, wModel);
 
+
+	if (this->_selected)
+		colorId = 2;
+	
+	this->_shader->setMat4("locModel", locModel);
+	this->_shader->setMat4("wModel", wModel);
+    this->_shader->setMat4("projection", projection);
+    this->_shader->setMat4("camera", camera);
+	this->_shader->setInt("uline", 0);
+	this->_shader->setInt("selected", this->getSelected());
+    this->_mesh.draw(*this->_shader, colorId);
+}
+
+
+
+void Entity::draw(int colorId) const
+{
+    float rotX[16], rotY[16], rotZ[16];
+    float worldRotX[16], worldRotY[16], worldRotZ[16];
+    float translate[16], wTranslate[16], scale[16];
+	float temp[16], temp2[16], locModel[16], wModel[16];;
+    float projection[16], camera[16];
+	float toCenter[16], backToCenter[16];
+
+	if (this->_isGizmo)
+	{
+		this->drawGizmo(colorId);
+		return ;
+	}
+
+    this->_shader->use();
+
+	std::array<float, 3> _pos = this->_mesh.getPos();
+
+	Render::identityMat4(toCenter);
+	toCenter[12] = -this->_mesh.getCenters()[0] - _pos[0];
+	toCenter[13] = -this->_mesh.getCenters()[1] - _pos[1];
+	toCenter[14] = -this->_mesh.getCenters()[2] - _pos[2];
+	Render::identityMat4(backToCenter);
+	backToCenter[12] = this->_mesh.getCenters()[0] + _pos[0];
+	backToCenter[13] = this->_mesh.getCenters()[1] + _pos[1];
+	backToCenter[14] = this->_mesh.getCenters()[2] + _pos[2];
+
+
+    Render::translate_obj(wTranslate);
+	Render::identityMat4(translate);
+    translate[12] += _pos[0];
+    translate[13] += _pos[1];
+    translate[14] += _pos[2];
+
+	this->rotate_x(rotX);
+	this->rotate_y(rotY);
+	this->rotate_z(rotZ);
+	
+	this->scale(scale);
+    Render::rotate_x(worldRotX);
+    Render::rotate_y(worldRotY);
+    Render::rotate_z(worldRotZ);
+
+    Render::project_points(projection);
+    Render::lookAt(camera, 0, 0, 0, 0, 0, -1, 0, 1, 0);
+
+	Render::multiply4(rotY, rotX, temp);			// Y * X
+	Render::multiply4(rotZ, temp, temp2);			// Z * Y * X
+	Render::multiply4(scale, temp2, temp);			// scale * Z * Y * X
+	Render::multiply4(toCenter, temp, temp2);		// ToCenter * Scale * Z * Y * X
+	Render::multiply4(temp2, backToCenter, temp);	// ToCenter * Scale * Z * Y * X * BackToCenter
+	Render::multiply4(translate, temp, locModel);	// Translate * Scale * ToCenter * Z * Y * X * BackToCenter
+	
+	Render::multiply4(worldRotY, worldRotX, temp);
+	Render::multiply4(worldRotZ, temp, temp2);
+	Render::multiply4(wTranslate, temp2, wModel);
+
+	
 	this->_shader->setMat4("locModel", locModel);
 	this->_shader->setMat4("wModel", wModel);
     this->_shader->setMat4("projection", projection);
@@ -291,8 +423,6 @@ void Entity::draw(int colorId) const
 	this->_shader->setInt("uline", 0);
 	this->_shader->setInt("selected", this->getSelected());
 	if (this->_selected)
-	{
 		colorId = 2;
-	}
     this->_mesh.draw(*this->_shader, colorId);
 }

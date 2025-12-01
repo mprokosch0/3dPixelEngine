@@ -74,21 +74,24 @@ class Gizmo
 {
 	private:
 		static std::array<Entity, 4>	_origin;
-		static std::array<float, 3>		_centersObj;
-		static std::array<float, 3>		_posObj;
-		static std::array<float, 3>		_rotObj;
-		static std::array<float, 3>		_scaleObj;
+		static std::array<int, 4>		_arrPos;
+		static Entity					*_obj;
 		Gizmo(void);
 		~Gizmo(void);
 
 	public:
 		static void							draw(int colorId);
-		static void							setObj(const std::array<float, 3> &enter, const std::array<float, 3> &pos,
-													const std::array<float, 3> &rot, const std::array<float, 3> &scale);
+		static void							drawPickColor(void);
+		static void							setObj(Entity *obj);
+		static void							setArrPos(std::array<int, 4> pos);
+		static std::array<int, 4>			getArrPos();
+		static Entity						*getObj(void);
 		static const std::array<float, 3>	&getPos(void);
 		static const std::array<float, 3>	&getCenters(void);
 		static const std::array<float, 3>	&getRot(void);
 		static const std::array<float, 3>	&getScale(void);
+		static std::array<Entity, 4>		&getGizmo(void);
+		static void							deselectAll(void);
 		static void							genGiz();
 };
 

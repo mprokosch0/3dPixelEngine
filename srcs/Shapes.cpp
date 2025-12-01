@@ -184,7 +184,7 @@ Cone::Cone(Shaders *shader, float posX, float posY, float posZ,
 	Mesh(generateConeVertices(0.5, 32), generateConeIndices(32),
 			generateConeLines(32)), flag)
 {
-	this->_mesh.setCenters(0, 0, 0);
+	this->_mesh.setCenters(0, 0.5, 0);
 	this->_mesh.setPos(posX, posY, posZ);
 	this->_mesh.setScale(scaleX, scaleY, scaleZ);
 	this->_mesh.setRot(rotX, rotY, rotZ);
@@ -222,6 +222,7 @@ void Hud::draw() const
     this->_shader->setMat4("projection", projection);
 	Opengl::glBindVertexArray(this->_mesh.getVao());
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+	glEnable(GL_DEPTH_TEST);
 }
 
 //Member functions-----------------------------------------
@@ -453,40 +454,40 @@ Cylinder::~Cylinder(void) {}
 static std::vector<float> GenGrid()
 {
 	std::vector<float> res;
-	for (int i = -100; i < 100; i+=10)
+	for (int i = -80; i < 80; i+=16)
 	{
-		for (int j = -100; j < 100; j+=10)
+		for (int j = -80; j < 80; j+=16)
 		{
 			res.push_back(j);
-			res.push_back(-100);
+			res.push_back(-80);
 			res.push_back(i);
 			res.push_back(j);
-			res.push_back(90);
+			res.push_back(64);
 			res.push_back(i);
 		}
 	}
-	for (int i = -100; i < 100; i+=10)
+	for (int i = -80; i < 80; i+=16)
 	{
-		for (int j = -100; j < 100; j+=10)
+		for (int j = -80; j < 80; j+=16)
 		{
-			res.push_back(-100);
+			res.push_back(-80);
 			res.push_back(j);
 			res.push_back(i);
-			res.push_back(90);
+			res.push_back(64);
 			res.push_back(j);
 			res.push_back(i);
 		}
 	}
-	for (int i = -100; i < 100; i+=10)
+	for (int i = -80; i < 80; i+=16)
 	{
-		for (int j = -100; j < 100; j+=10)
+		for (int j = -80; j < 80; j+=16)
 		{
 			res.push_back(i);
 			res.push_back(j);
-			res.push_back(-100);
+			res.push_back(-80);
 			res.push_back(i);
 			res.push_back(j);
-			res.push_back(90);
+			res.push_back(64);
 		}
 	}
 	return res;
@@ -495,7 +496,7 @@ static std::vector<float> GenGrid()
 static std::vector<GLuint> GenIndices()
 {
 	std::vector<GLuint> res;
-	for (int i = 0; i < 20 * 20 * 6; i+=2)
+	for (int i = 0; i < 10 * 10 * 6; i+=2)
 	{
 		res.push_back(i);
 		res.push_back(i + 1);
@@ -540,9 +541,9 @@ void Grid::draw()
     backToCenter[13] = this->_mesh.getCenters()[1] + _pos[1];
     backToCenter[14] = this->_mesh.getCenters()[2] + _pos[2];
 	Render::identityMat4(wTranslate);
-	wTranslate[12] += Render::getTx() - (std::floor(Render::getTx() / 10) * 10);
-    wTranslate[13] += Render::getTy() - (std::floor(Render::getTy() / 10) * 10);
-    wTranslate[14] += Render::getTz() - (std::floor(Render::getTz() / 10) * 10);
+	wTranslate[12] += Render::getTx() - (std::floor(Render::getTx() / 16) * 16);
+    wTranslate[13] += Render::getTy() - (std::floor(Render::getTy() / 16) * 16);
+    wTranslate[14] += Render::getTz() - (std::floor(Render::getTz() / 16) * 16);
 	Render::identityMat4(translate);
     translate[12] += _pos[0];
     translate[13] += _pos[1];
@@ -579,7 +580,7 @@ void Grid::draw()
 	this->_shader->setFloat("colorG", this->_color[1]);
 	this->_shader->setFloat("colorB", this->_color[2]);
 	Opengl::glBindVertexArray(this->_mesh.getVao());
-	glDrawElements(GL_LINES, 20 * 20 * 6, GL_UNSIGNED_INT, 0);
+	glDrawElements(GL_LINES, 10 * 10 * 6, GL_UNSIGNED_INT, 0);
 }
 
 //GRID---------------------------------------------------------------------------------
@@ -647,20 +648,20 @@ std::array<Entity, 4> genGizmo()
 	_origin[0].setColors(1, 1, 1);
 	_origin[0].setGizmo(true);
     // Flèche Y (vert)
-    _origin[1] = Cone(shaders[0], 0, 1, 0, 0, 0, 0, 0.05, 0.1, 0.05, 1) +
-                 Cylinder(shaders[0], 0, 0.5, 0, 0, 0, 0, 0.001, 0.1, 0.001, 1);
+    _origin[1] = Cone(shaders[0], 0, 1, 0, 0, 0, 0, 0.1, 0.2, 0.1, 1) +
+                 Cylinder(shaders[0], 0, 0.5, 0, 0, 0, 0, 0.0025, 0.1, 0.0025, 1);
 	_origin[1].setColors(0, 1, 0);
 	_origin[1].setGizmo(true);
 
     // Flèche X (rouge)
-    _origin[2] = Cone(shaders[0], 1, 0, 0, 0, 0, -M_PI_2, 0.05, 0.1, 0.05, 1) +
-                 Cylinder(shaders[0], 0.5, 0, 0, 0, 0, -M_PI_2, 0.001, 0.1, 0.001, 1);
+    _origin[2] = Cone(shaders[0], 1, 0, 0, 0, 0, -M_PI_2, 0.1, 0.2, 0.1, 1) +
+                 Cylinder(shaders[0], 0.5, 0, 0, 0, 0, -M_PI_2, 0.0025, 0.1, 0.0025, 1);
 	_origin[2].setColors(1, 0, 0);
 	_origin[2].setGizmo(true);
 
     // Flèche Z (bleu)
-    _origin[3] = Cone(shaders[0], 0, 0, 1, M_PI_2, 0, 0, 0.05, 0.1, 0.05, 1) +
-                 Cylinder(shaders[0], 0, 0, 0.5, M_PI_2, 0, 0, 0.001, 0.1, 0.001, 1);
+    _origin[3] = Cone(shaders[0], 0, 0, 1, M_PI_2, 0, 0, 0.1, 0.2, 0.1, 1) +
+                 Cylinder(shaders[0], 0, 0, 0.5, M_PI_2, 0, 0, 0.0025, 0.1, 0.0025, 1);
 	_origin[3].setColors(0, 0, 1);
 	_origin[3].setGizmo(true);
 
@@ -669,10 +670,8 @@ std::array<Entity, 4> genGizmo()
 
 
 std::array<Entity, 4>	Gizmo::_origin;
-std::array<float, 3>	Gizmo::_centersObj;
-std::array<float, 3>	Gizmo::_posObj;
-std::array<float, 3>	Gizmo::_rotObj;
-std::array<float, 3>	Gizmo::_scaleObj;
+std::array<int, 4>		Gizmo::_arrPos;
+Entity					*Gizmo::_obj;
 
 //constructors/destructors---------------------------------
 
@@ -684,31 +683,41 @@ Gizmo::~Gizmo(void) {}
 
 const std::array<float, 3> &Gizmo::getPos(void)
 {
-	return _posObj;
+	return _obj->getMesh().getPos();
 }
 
 const std::array<float, 3> &Gizmo::getRot(void)
 {
-	return _rotObj;
+	return _obj->getMesh().getRot();
 }
 
 const std::array<float, 3> &Gizmo::getScale(void)
 {
-	return _scaleObj;
+	return _obj->getMesh().getScale();
 }
 
 const std::array<float, 3> &Gizmo::getCenters(void)
 {
-	return _centersObj;
+	return _obj->getMesh().getCenters();
 }
 
-void	Gizmo::setObj(const std::array<float, 3> &center, const std::array<float, 3> &pos,
-							const std::array<float, 3> &rot, const std::array<float, 3> &scale)
+Entity *Gizmo::getObj(void)
 {
-	_centersObj = center;
-	_posObj = pos;
-	_rotObj = rot;
-	_scaleObj = scale;
+	return _obj;
+}
+
+void	Gizmo::setObj(Entity *obj)
+{
+	_obj = obj;
+}
+
+void Gizmo::drawPickColor()
+{
+	for (size_t i = 0; i < 4; i++)
+	{
+		_origin[i].setUniformColor(1);
+		_origin[i].draw(0);
+	}
 }
 
 void Gizmo::draw(int colorId)
@@ -716,8 +725,34 @@ void Gizmo::draw(int colorId)
 	for (size_t i = 0; i < 4; i++)
 	{
 		_origin[i].setUniformColor(0);
-		_origin[i].draw(colorId);
+		if (colorId == _origin[i].getColorId() && !_origin[i].getSelected())
+			_origin[i].draw(1);
+		else if (colorId == _origin[i].getColorId() && _origin[i].getSelected())
+			_origin[i].draw(2);
+		else
+			_origin[i].draw(0);
 	}
+}
+
+std::array<Entity, 4>	&Gizmo::getGizmo(void)
+{
+	return _origin;
+}
+
+void Gizmo::deselectAll(void)
+{
+	for (size_t i = 0; i < 4; i++)
+		_origin[i].setSelected(false);
+}
+
+void Gizmo::setArrPos(std::array<int, 4> pos)
+{
+	_arrPos = pos;
+}
+
+std::array<int, 4> Gizmo::getArrPos()
+{
+	return _arrPos;
 }
 
 void Gizmo::genGiz()
@@ -726,6 +761,10 @@ void Gizmo::genGiz()
 	if (!i)
 	{
 		_origin = genGizmo();
+		_arrPos[0] = 0;
+		_arrPos[1] = 2;
+		_arrPos[2] = 1;
+		_arrPos[3] = 3;
 		i = 1;
 	}
 }
