@@ -126,10 +126,24 @@ void Render::lookAt(float *mat,
     mat[3] = 0;     mat[7] = 0;     mat[11] = 0;        mat[15] = 1;
 }
 
+void Render::multiply4Correct(float *a, float *b, float *result)
+{
+    for (int i = 0; i < 4; ++i)
+    {
+        for (int j = 0; j < 4; ++j)
+        {
+            result[i + j*4] =
+                a[i + 0*4] * b[0 + j*4] +
+                a[i + 1*4] * b[1 + j*4] +
+                a[i + 2*4] * b[2 + j*4] +
+                a[i + 3*4] * b[3 + j*4];
+        }
+    }
+}
 
 void Render::multiply4(float *a, float *b, float *result)
 {
-	 for (int i = 0; i < 4; ++i)
+	for (int i = 0; i < 4; ++i)
     {
         for (int j = 0; j < 4; ++j)
         {
@@ -540,8 +554,8 @@ void Render::moveGizmo(double &lastX, double &lastY)
     double dx = mouseX - lastX;
     double dy = -( mouseY - lastY);
 
-    std::array<double, 3> center = {pos[0], pos[1], pos[2]},
-                          tip = {pos[0] + vert[0], pos[1] + vert[1], pos[2] + vert[2]};
+    std::array<double, 3> center = {pos[0], pos[1], -pos[2]},
+                          tip = {pos[0] + vert[0], pos[1] + vert[1], -pos[2] + vert[2]};
    
     std::cout << RED "before anything: \n" RESET;
     std::cout << "center = " << center[0] << ", " << center[1] << ", " << center[2] << std::endl;
@@ -559,6 +573,7 @@ void Render::moveGizmo(double &lastX, double &lastY)
     std::cout << PINK "after : \n" RESET;
     std::cout << "center = " << center[0] << ", " << center[1] << std::endl;
     std::cout << "tip = " << tip[0] << ", " << tip[1] << std::endl;
+
     double axisScreenX = tip[0] - center[0];
     double axisScreenY = tip[1] - center[1];
     

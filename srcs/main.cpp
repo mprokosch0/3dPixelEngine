@@ -65,7 +65,6 @@ static void drawNormal(GLuint buffer, Grid &grid, int pickedColor)
 	{
 		if (Menu::getEnableMouse() && obj->getSelected())
 		{
-			Mesh tmp = obj->getMesh();
 			Gizmo::setObj(obj);
 			Gizmo::draw(pickedColor);
 		}
@@ -91,10 +90,7 @@ static void drawPickColor(GLuint buffer)
 		obj->setUniformColor(1);
 		obj->draw(0);
 		if (Menu::getEnableMouse() && obj->getSelected())
-		{
-			Mesh tmp = obj->getMesh();
 			Gizmo::drawPickColor();
-		}
 	}
 	Opengl::glBindVertexArray(0);
 }
@@ -136,7 +132,7 @@ static void	drawScene(Grid &grid, Hud &hud, Text &text, GLuint frameBuffer)
 
 int main()
 {
-	Shaders	base, sol, quad, hudS, textS;
+	Shaders	base, sol, quad, hudS, textS, line;
 	int	width, height;
 	try
 	{
@@ -151,6 +147,8 @@ int main()
 		hudS.addBack();
 		textS = Shaders("shaders/vertexShaderHud.glsl", "shaders/fragmentShaderText.glsl");
 		textS.addBack();
+		line = Shaders("shaders/vertexShaderLine.glsl", "shaders/fragmentShaderText.glsl");
+		line.addBack();
 	}
 	catch(const std::exception& e)
 	{
@@ -161,11 +159,17 @@ int main()
 	Text	text(&textS);
 	Gizmo::genGiz();
 	Hud		hud(&hudS, 0, 0, 500, Opengl::getHeight());
-	Plane(&sol, 0, -1, 0, 0, 0, 0, 50, 1, 100, 0);
-	Cone(&base, -10, 5, -10, 0, 0, 0, 10, 10, 10, 0);
-	Cube(&base, 0, 10, 0, M_PI_4, 0, 0, 2, 2, 2, 0);
-	Cube(&base, 10, 5, -10, 0, M_PI / 2, 0, 5, 5, 5, 0);
-	Cube(&base, 10, 5, 10, 0, 0, 0, 8, 8, 8, 0);
+	Entity obj, obj2, obj3, obj4, obj5;
+	obj = Plane(&sol, 0, -1, 0, 0, 0, 0, 50, 1, 100);
+	obj.addBack();
+	obj2 = Cone(&base, -10, 5, -10, 0, 0, 0, 10, 10, 10);
+	obj2.addBack();
+	obj3 = Cube(&base, 0, 10, 0, M_PI_4, 0, 0, 2, 2, 2);
+	obj3.addBack();
+	obj4 = Cube(&base, 10, 5, -10, 0, M_PI / 2, 0, 5, 5, 5);
+	obj4.addBack();
+	obj5 = Cube(&base, 10, 5, 10, 0, 0, 0, 8, 8, 8);
+	obj5.addBack();
 	glfwSetInputMode(Opengl::getWindow(), GLFW_STICKY_KEYS, GL_TRUE);
 	glClearColor(0.4f, 0.4f, 0.4f, 0.0f);
 	glEnable(GL_BLEND);

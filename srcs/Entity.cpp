@@ -17,7 +17,7 @@ Entity &Entity::operator=(Entity const &rhs)
 
 Entity Entity::operator+(Entity const &rhs) const
 {
-	Entity res(_shader, _mesh + rhs._mesh, 1);
+	Entity res(_shader, _mesh + rhs._mesh);
     res._selected = false;
 	res._color[0] = (this->_color[0] + rhs._color[0] / 2);
 	res._color[1] = (this->_color[1] + rhs._color[1] / 2);
@@ -38,7 +38,17 @@ Entity::Entity(void)
 	_selected = false;
 }
 
-Entity::Entity(Shaders *shader, Mesh mesh, int flag)
+Entity::Entity(Entity const &rhs)
+{
+	this->_mesh = rhs._mesh;
+	this->_shader = rhs._shader;
+	this->_colorId = rhs._colorId;
+	this->_selected = rhs._selected;
+	this->_color = rhs._color;
+	this->_isGizmo = rhs._isGizmo;
+}
+
+Entity::Entity(Shaders *shader, Mesh mesh)
 {
 	static int i = 16777215;
 
@@ -48,8 +58,6 @@ Entity::Entity(Shaders *shader, Mesh mesh, int flag)
 	this->_shader = shader;
 	this->_mesh = mesh;
 	this->_color = {-1, -1, -1};
-	if (!flag)
-		_objs.push_back(this);
 }
 
 Entity::~Entity(void) {}
@@ -275,22 +283,22 @@ int Entity::projectArrow(std::array<double, 3> &center, std::array<double, 3> &t
     Render::project_points(projection);
     Render::lookAt(camera, 0, 0, 0, 0, 0, -1, 0, 1, 0);
 
-	Render::multiply4(rotY, rotX, temp);
-	Render::multiply4(rotZ, temp, temp2);
-	Render::multiply4(temp2, scale, locModel);
+	Render::multiply4Correct(rotY, rotX, temp);
+	Render::multiply4Correct(rotZ, temp, temp2);
+	Render::multiply4Correct(temp2, scale, locModel);
 	//Render::multiply4(temp, translate, locModel);
 
-	Render::multiply4(worldRotY, worldRotX, temp);
-	Render::multiply4(worldRotZ, temp, temp2);
-	Render::multiply4(wTranslate, temp2, wModel);
-	Render::multiply4(wModel, locModel, temp);
-	Render::multiply4(camera, temp, temp2);
-	Render::multiply4(projection, temp2, temp);
+	Render::multiply4Correct(worldRotY, worldRotX, temp);
+	Render::multiply4Correct(worldRotZ, temp, temp2);
+	Render::multiply4Correct(wTranslate, temp2, wModel);
+	Render::multiply4Correct(wModel, locModel, temp);
+	Render::multiply4Correct(camera, temp, temp2);
+	Render::multiply4Correct(projection, temp2, temp);
 
-	res[0] = temp[0] * center[0] + temp[1] * center[1] + temp[2] * center[2] + temp[3];
-	res[1] = temp[4] * center[0] + temp[5] * center[1] + temp[6] * center[2] + temp[7];
-	res[2] = temp[8] * center[0] + temp[9] * center[1] + temp[10] * center[2] + temp[11];
-	res[3] = temp[12] * center[0] + temp[13] * center[1] + temp[14] * center[2] + temp[15];
+	res[0] = temp[0] * center[0] + temp[4] * center[1] + temp[8] * center[2] + temp[12];
+	res[1] = temp[1] * center[0] + temp[5] * center[1] + temp[9] * center[2] + temp[13];
+	res[2] = temp[2] * center[0] + temp[6] * center[1] + temp[10] * center[2] + temp[14];
+	res[3] = temp[3] * center[0] + temp[7] * center[1] + temp[11] * center[2] + temp[15];
 	// if (res[3] <= 0.0f)
 	// 	return 1;
 	std::cout << BLUE "center clip space :\n" RESET;
@@ -299,10 +307,10 @@ int Entity::projectArrow(std::array<double, 3> &center, std::array<double, 3> &t
 		center = { res[0] / res[3], res[1] / res[3], res[2] / res[3] };
 	else
 		center = { res[0], res[1], res[2] };
-	res[0] = temp[0] * tip[0] + temp[1] * tip[1] + temp[2] * tip[2] + temp[3];
-	res[1] = temp[4] * tip[0] + temp[5] * tip[1] + temp[6] * tip[2] + temp[7];
-	res[2] = temp[8] * tip[0] + temp[9] * tip[1] + temp[10] * tip[2] + temp[11];
-	res[3] = temp[12] * tip[0] + temp[13] * tip[1] + temp[14] * tip[2] + temp[15];
+	res[0] = temp[0] * tip[0] + temp[4] * tip[1] + temp[8] * tip[2] + temp[12];
+	res[1] = temp[1] * tip[0] + temp[5] * tip[1] + temp[9] * tip[2] + temp[13];
+	res[2] = temp[2] * tip[0] + temp[6] * tip[1] + temp[10] * tip[2] + temp[14];
+	res[3] = temp[3] * tip[0] + temp[7] * tip[1] + temp[11] * tip[2] + temp[15];
 	// if (res[3] <= 0.0f)
 	// 	return 1;
 	std::cout << BLUE "tip clip space :\n" RESET;
@@ -428,7 +436,6 @@ void Entity::draw(int colorId) const
 	Render::multiply4(worldRotY, worldRotX, temp);
 	Render::multiply4(worldRotZ, temp, temp2);
 	Render::multiply4(wTranslate, temp2, wModel);
-
 	
 	this->_shader->setMat4("locModel", locModel);
 	this->_shader->setMat4("wModel", wModel);

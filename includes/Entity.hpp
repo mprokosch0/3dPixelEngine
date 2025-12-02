@@ -27,7 +27,8 @@ class Entity
 
 	public:
 		Entity(void);
-		Entity(Shaders *shader, Mesh mesh, int flag);
+		Entity(Shaders *shader, Mesh mesh);
+		Entity(Entity const &rhs);
 		Entity &operator=(Entity const &rhs);
 		Entity	operator+(Entity const &rhs) const;
 		~Entity();

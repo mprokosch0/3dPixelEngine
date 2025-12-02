@@ -50,6 +50,7 @@ class Render
 		static void		translate_obj(float *mat);
 		static void		identityMat4(float *mat);
 		static bool		invertMat4(const float mat4[16], float invOut[16]);
+		static void		multiply4Correct(float *a, float *b, float *result);
 		static void		multiply4(float *a, float *b, float *result);
 		static float	getTx();
 		static float	getTy();

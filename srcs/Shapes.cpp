@@ -6,7 +6,7 @@
 
 Cube::Cube(Shaders *shader, float posX, float posY, float posZ,
 		float rotX, float rotY, float rotZ,
-		float scaleX, float scaleY, float scaleZ, bool flag): Entity(shader, 
+		float scaleX, float scaleY, float scaleZ): Entity(shader, 
 	Mesh(std::vector<float> {
 			-0.5f, -0.5f, -0.5f,
 			-0.5f, 0.5f, -0.5f,
@@ -33,7 +33,7 @@ Cube::Cube(Shaders *shader, float posX, float posY, float posZ,
 		4, 5,  4, 6,
 		5, 7,
 		6, 7
-	}), flag)
+	}))
 {
 	this->_mesh.setPos(posX, posY, posZ);
 	this->_mesh.setScale(scaleX, scaleY, scaleZ);
@@ -50,7 +50,7 @@ Cube::~Cube(void) {}
 
 Plane::Plane(Shaders *shader, float posX, float posY, float posZ,
 		float rotX, float rotY, float rotZ,
-		float scaleX, float scaleY, float scaleZ, bool flag): Entity(shader, 
+		float scaleX, float scaleY, float scaleZ): Entity(shader, 
 	Mesh(std::vector<float> {
 			-1, 0, -1,
 			1, 0, -1,
@@ -63,7 +63,7 @@ Plane::Plane(Shaders *shader, float posX, float posY, float posZ,
 	std::vector<GLuint> {
 		0, 1,  0, 2,
 		3, 1,  3, 2
-	}), flag)
+	}))
 {
 	this->_mesh.setPos(posX, posY, posZ);
 	this->_mesh.setScale(scaleX, scaleY, scaleZ);
@@ -80,7 +80,7 @@ Plane::~Plane(void) {}
 
 Triangle::Triangle(Shaders *shader, float posX, float posY, float posZ,
 		float rotX, float rotY, float rotZ,
-		float scaleX, float scaleY, float scaleZ, bool flag): Entity(shader, 
+		float scaleX, float scaleY, float scaleZ): Entity(shader, 
 	Mesh(std::vector<float> {
 			0.0f, 0.0f,  0.57735027f,
 			-0.5f, 0.0f, -0.28867513f,
@@ -95,7 +95,7 @@ Triangle::Triangle(Shaders *shader, float posX, float posY, float posZ,
 	std::vector<GLuint> {
 		0, 1,  0, 2,  0, 3,
 		1, 2,  2, 3,  1, 3
-	}), flag)
+	}))
 {
 	this->_mesh.setCenters(0, 0, 0);
 	this->_mesh.setPos(posX, posY, posZ);
@@ -180,9 +180,9 @@ std::vector<GLuint> generateConeLines(unsigned int radialSeg)
 
 Cone::Cone(Shaders *shader, float posX, float posY, float posZ,
 		float rotX, float rotY, float rotZ,
-		float scaleX, float scaleY, float scaleZ, bool flag): Entity(shader, 
+		float scaleX, float scaleY, float scaleZ): Entity(shader, 
 	Mesh(generateConeVertices(0.5, 32), generateConeIndices(32),
-			generateConeLines(32)), flag)
+			generateConeLines(32)))
 {
 	this->_mesh.setCenters(0, 0.5, 0);
 	this->_mesh.setPos(posX, posY, posZ);
@@ -205,7 +205,7 @@ Hud::Hud(Shaders *shader, float x, float y, float lenX, float lenY): Entity(shad
 		},
 		std::vector<GLuint>{
 			0, 1, 2,  1, 2, 3
-		}), 1)
+		}))
 {}
 
 Hud::~Hud(void) {}
@@ -331,9 +331,9 @@ std::vector<GLuint> generateSphereLines(unsigned int latSeg, unsigned int lonSeg
 
 Sphere::Sphere(Shaders *shader, float posX, float posY, float posZ,
 		float rotX, float rotY, float rotZ,
-		float scaleX, float scaleY, float scaleZ, bool flag): Entity(shader, 
+		float scaleX, float scaleY, float scaleZ): Entity(shader, 
 	Mesh(generateSphereVertices(10, 32, 32), generateSphereIndices(32, 32),
-			generateSphereLines(32, 32)), flag)
+			generateSphereLines(32, 32)))
 {
 	this->_mesh.setCenters(0, 0, 0);
 	this->_mesh.setPos(posX, posY, posZ);
@@ -432,9 +432,9 @@ std::vector<GLuint> generateCylinderLines(unsigned int radialSeg, unsigned int h
 
 Cylinder::Cylinder(Shaders *shader, float posX, float posY, float posZ,
 		float rotX, float rotY, float rotZ,
-		float scaleX, float scaleY, float scaleZ, bool flag): Entity(shader, 
+		float scaleX, float scaleY, float scaleZ): Entity(shader, 
 	Mesh(generateCylinderVertices(10, 10, 32, 10), generateCylinderIndices(32, 10),
-			generateCylinderLines(32, 10)), flag)
+			generateCylinderLines(32, 10)))
 {
 	this->_mesh.setCenters(0, 0, 0);
 	this->_mesh.setPos(posX, posY, posZ);
@@ -510,7 +510,7 @@ Grid::Grid(Shaders *shader): Entity(shader,
 	std::vector<GLuint> {
 		0, 1,  0, 2,  0, 3,
 		1, 2,  2, 3,  1, 3
-	}), 1)
+	}))
 {
 	this->setColors(0.3, 0.3, 0.3);
 }
@@ -587,7 +587,7 @@ void Grid::draw()
 
 //constructors/destructors---------------------------------
 
-Text::Text(Shaders *shader): Entity(shader, Mesh(std::vector<float>{}, std::vector<GLuint>{}), 1)
+Text::Text(Shaders *shader): Entity(shader, Mesh(std::vector<float>{}, std::vector<GLuint>{}))
 {}
 
 Text::~Text(void) {}
@@ -644,24 +644,24 @@ std::array<Entity, 4> genGizmo()
     std::vector<Shaders *> shaders = Shaders::getShaders();
     std::array<Entity, 4> _origin;
 
-    _origin[0] = Sphere(shaders[0], 0, 0, 0, 0, 0, 0, 0.01, 0.01, 0.01, 1);
+    _origin[0] = Sphere(shaders[0], 0, 0, 0, 0, 0, 0, 0.01, 0.01, 0.01);
 	_origin[0].setColors(1, 1, 1);
 	_origin[0].setGizmo(true);
     // Flèche Y (vert)
-    _origin[1] = Cone(shaders[0], 0, 1, 0, 0, 0, 0, 0.1, 0.2, 0.1, 1) +
-                 Cylinder(shaders[0], 0, 0.5, 0, 0, 0, 0, 0.0025, 0.1, 0.0025, 1);
+    _origin[1] = Cone(shaders[0], 0, 1, 0, 0, 0, 0, 0.1, 0.2, 0.1) +
+                 Cylinder(shaders[0], 0, 0.5, 0, 0, 0, 0, 0.0025, 0.1, 0.0025);
 	_origin[1].setColors(0, 1, 0);
 	_origin[1].setGizmo(true);
 
     // Flèche X (rouge)
-    _origin[2] = Cone(shaders[0], 1, 0, 0, 0, 0, -M_PI_2, 0.1, 0.2, 0.1, 1) +
-                 Cylinder(shaders[0], 0.5, 0, 0, 0, 0, -M_PI_2, 0.0025, 0.1, 0.0025, 1);
+    _origin[2] = Cone(shaders[0], 1, 0, 0, 0, 0, -M_PI_2, 0.1, 0.2, 0.1) +
+                 Cylinder(shaders[0], 0.5, 0, 0, 0, 0, -M_PI_2, 0.0025, 0.1, 0.0025);
 	_origin[2].setColors(1, 0, 0);
 	_origin[2].setGizmo(true);
 
     // Flèche Z (bleu)
-    _origin[3] = Cone(shaders[0], 0, 0, 1, M_PI_2, 0, 0, 0.1, 0.2, 0.1, 1) +
-                 Cylinder(shaders[0], 0, 0, 0.5, M_PI_2, 0, 0, 0.0025, 0.1, 0.0025, 1);
+    _origin[3] = Cone(shaders[0], 0, 0, 1, M_PI_2, 0, 0, 0.1, 0.2, 0.1) +
+                 Cylinder(shaders[0], 0, 0, 0.5, M_PI_2, 0, 0, 0.0025, 0.1, 0.0025);
 	_origin[3].setColors(0, 0, 1);
 	_origin[3].setGizmo(true);
 

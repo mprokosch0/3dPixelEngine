@@ -7,42 +7,42 @@
 class Cube: public Entity
 {
 	public:
-		Cube(Shaders *shader, float posX, float posY, float posZ, float rotX, float rotY, float rotZ, float scaleX, float scaleY, float scaleZ, bool flag);
+		Cube(Shaders *shader, float posX, float posY, float posZ, float rotX, float rotY, float rotZ, float scaleX, float scaleY, float scaleZ);
 		~Cube(void);
 };
 
 class Triangle: public Entity
 {
 	public:
-		Triangle(Shaders *shader, float posX, float posY, float posZ, float rotX, float rotY, float rotZ, float scaleX, float scaleY, float scaleZ, bool flag);
+		Triangle(Shaders *shader, float posX, float posY, float posZ, float rotX, float rotY, float rotZ, float scaleX, float scaleY, float scaleZ);
 		~Triangle(void);
 };
 
 class Cone: public Entity
 {
 	public:
-		Cone(Shaders *shader, float posX, float posY, float posZ, float rotX, float rotY, float rotZ, float scaleX, float scaleY, float scaleZ, bool flag);
+		Cone(Shaders *shader, float posX, float posY, float posZ, float rotX, float rotY, float rotZ, float scaleX, float scaleY, float scaleZ);
 		~Cone(void);
 };
 
 class Plane: public Entity
 {
 	public:
-		Plane(Shaders *shader, float posX, float posY, float posZ, float rotX, float rotY, float rotZ, float scaleX, float scaleY, float scaleZ, bool flag);
+		Plane(Shaders *shader, float posX, float posY, float posZ, float rotX, float rotY, float rotZ, float scaleX, float scaleY, float scaleZ);
 		~Plane(void);
 };
 
 class Sphere: public Entity
 {
 	public:
-		Sphere(Shaders *shader, float posX, float posY, float posZ, float rotX, float rotY, float rotZ, float scaleX, float scaleY, float scaleZ, bool flag);
+		Sphere(Shaders *shader, float posX, float posY, float posZ, float rotX, float rotY, float rotZ, float scaleX, float scaleY, float scaleZ);
 		~Sphere(void);
 };
 
 class Cylinder: public Entity
 {
 	public:
-		Cylinder(Shaders *shader, float posX, float posY, float posZ, float rotX, float rotY, float rotZ, float scaleX, float scaleY, float scaleZ, bool flag);
+		Cylinder(Shaders *shader, float posX, float posY, float posZ, float rotX, float rotY, float rotZ, float scaleX, float scaleY, float scaleZ);
 		~Cylinder(void);
 };
 
