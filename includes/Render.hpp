@@ -47,7 +47,6 @@ class Render
 		static void		rotate_z(float *mat);
 		static void		project_points(float *mat);
 		static void		project_pointsOrth(float *mat);
-		static void		center_obj(float *mat);
 		static void		translate_obj(float *mat);
 		static void		identityMat4(float *mat);
 		static bool		invertMat4(const float mat4[16], float invOut[16]);

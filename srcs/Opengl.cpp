@@ -1,6 +1,7 @@
 #include "Opengl.hpp"
 
 GLFWwindow					*Opengl::_window = NULL;
+GLFWwindow					*Opengl::_window2 = NULL;
 int                         Opengl::_width = WIDTH;
 int                         Opengl::_height = HEIGHT;
 CREATESHADERPROC            Opengl::glCreateShader = nullptr;            // Creates a new shader object (vertex, fragment, etc.)
@@ -70,6 +71,11 @@ void    Opengl::setDim(int width, int height)
 GLFWwindow *Opengl::getWindow(void)
 {
 	return _window;
+}
+
+GLFWwindow *Opengl::getWindow2(void)
+{
+	return _window2;
 }
 
 void Opengl::initiateWindow(std::string str)

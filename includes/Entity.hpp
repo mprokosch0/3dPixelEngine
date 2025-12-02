@@ -53,7 +53,7 @@ class Entity
 		void								setScale(float x, float y, float z);
 		void								draw(int colorId) const;
 		void								drawGizmo(int colorId) const;
-		void								projectArrow(std::array<double, 3> &center, std::array<double, 3> &t2);
+		int									projectArrow(std::array<double, 3> &center, std::array<double, 3> &t2);
 		void								turnAxis(std::array<double, 3> center, std::array<double, 3> &tip);
 
 };

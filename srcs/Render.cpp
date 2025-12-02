@@ -18,88 +18,81 @@ Render::~Render(void) {}
 
 //Member functions-----------------------------------------
 
-void	Render::rotate_y(float *mat)
+void Render::rotate_y(float *mat)
 {
-	float cosA = cosf(_angleX);
-	float sinA = sinf(_angleX);
-	mat[0]  = cosA; mat[1]  = 0; mat[2]  = -sinA; mat[3]  = 0;
-	mat[4]  = 0;    mat[5]  = 1; mat[6]  = 0;     mat[7]  = 0;
-	mat[8]  = sinA; mat[9]  = 0; mat[10] = cosA;  mat[11] = 0;
-	mat[12] = 0;    mat[13] = 0; mat[14] = 0;     mat[15] = 1;
+    float cosA = cosf(_angleX);
+    float sinA = sinf(_angleX);
+
+    mat[0] = cosA;  mat[4] = 0; mat[8]  = sinA; mat[12] = 0;
+    mat[1] = 0;     mat[5] = 1; mat[9]  = 0;     mat[13] = 0;
+    mat[2] = -sinA;  mat[6] = 0; mat[10] = cosA;  mat[14] = 0;
+    mat[3] = 0;     mat[7] = 0; mat[11] = 0;     mat[15] = 1;
 }
 
-void	Render::rotate_x(float *mat)
+void Render::rotate_x(float *mat)
 {
-	float cosA = cosf(_angleY);
-	float sinA = sinf(_angleY);
-	mat[0]  = 1; mat[1]  = 0;    mat[2]  = 0;	  mat[3]  = 0;
-	mat[4]  = 0; mat[5]  = cosA; mat[6]  = -sinA; mat[7]  = 0;
-	mat[8]  = 0; mat[9]  = sinA; mat[10] = cosA;  mat[11] = 0;
-	mat[12] = 0; mat[13] = 0;	 mat[14] = 0;     mat[15] = 1;
+    float cosA = cosf(_angleY);
+    float sinA = sinf(_angleY);
+
+    mat[0] = 1;  mat[4] = 0;     mat[8]  = 0;    mat[12] = 0;
+    mat[1] = 0;  mat[5] = cosA;  mat[9]  = -sinA; mat[13] = 0;
+    mat[2] = 0;  mat[6] = sinA; mat[10] = cosA; mat[14] = 0;
+    mat[3] = 0;  mat[7] = 0;     mat[11] = 0;    mat[15] = 1;
 }
 
-void	Render::rotate_z(float *mat)
+void Render::rotate_z(float *mat)
 {
-	float cosA = cosf(_angleZ);
-	float sinA = sinf(_angleZ);
-	mat[0]  = cosA; mat[1]  = -sinA; mat[2]  = 0; mat[3]  = 0;
-	mat[4]  = sinA; mat[5]  = cosA;  mat[6]  = 0; mat[7]  = 0;
-	mat[8]  = 0;	mat[9]  = 0;	 mat[10] = 1; mat[11] = 0;
-	mat[12] = 0;	mat[13] = 0;	 mat[14] = 0; mat[15] = 1;
+    float cosA = cosf(_angleZ);
+    float sinA = sinf(_angleZ);
+
+    mat[0] = cosA;  mat[4] = -sinA;  mat[8]  = 0; mat[12] = 0;
+    mat[1] = sinA; mat[5] = cosA;  mat[9]  = 0; mat[13] = 0;
+    mat[2] = 0;     mat[6] = 0;     mat[10] = 1; mat[14] = 0;
+    mat[3] = 0;     mat[7] = 0;     mat[11] = 0; mat[15] = 1;
 }
 
-void	Render::project_points(float *mat)
+void Render::project_points(float *mat)
 {
-	float	ratio = (float)Opengl::getWidth() / (float)Opengl::getHeight();
-	float	fov = 90.0f * (M_PI / 180);
-	float	near = 0.1f;
-	float	far = 10000.0f;
-	float t = tanf(fov / 2.0f);
+    float ratio = (float)Opengl::getWidth() / (float)Opengl::getHeight();
+    float fov = 90.0f * (M_PI / 180);
+    float near = 0.1f;
+    float far = 10000.0f;
+    float t = tanf(fov / 2.0f);
 
-	mat[0]  = 1 / (ratio * t); mat[1]  = 0;		mat[2]  = 0;								mat[3]  = 0;
-	mat[4]  = 0;    		   mat[5]  = 1 / t;	mat[6]  = 0;								mat[7]  = 0;
-	mat[8]  = 0;			   mat[9]  = 0;		mat[10] = -(far + near) / (far - near);		mat[11] = -1;
-	mat[12] = 0;    		   mat[13] = 0;		mat[14] = -2 * far * near / (far - near);	mat[15] = 0;
+    mat[0]  = 1 / (ratio * t); mat[4]  = 0;     mat[8]  = 0;                          mat[12] = 0;
+    mat[1]  = 0;               mat[5]  = 1 / t; mat[9]  = 0;                          mat[13] = 0;
+    mat[2]  = 0;               mat[6]  = 0;     mat[10] = -(far+near)/(far-near);     mat[14] = -(2*far*near)/(far-near);
+    mat[3]  = 0;               mat[7]  = 0;     mat[11] = -1;                         mat[15] = 0;
 }
 
-void	Render::project_pointsOrth(float *mat)
+void Render::project_pointsOrth(float *mat)
 {
-	mat[0]  = 2.0f / Opengl::getWidth();	mat[1]  = 0;						mat[2]  = 0;	mat[3]  = 0;
-	mat[4]  = 0;						mat[5]  = 2.0f / Opengl::getHeight();	mat[6]  = 0;	mat[7]  = 0;
-	mat[8]  = 0;						mat[9]  = 0;						mat[10] = -1;	mat[11] = 0;
-	mat[12] = -1;						mat[13] = -1;						mat[14] = 0;	mat[15] = 1;
+    mat[0]  = 2.0f / Opengl::getWidth();  mat[4]  = 0;                        mat[8]  = 0;  mat[12] = -1;
+    mat[1]  = 0;                          mat[5]  = 2.0f / Opengl::getHeight(); mat[9]  = 0;  mat[13] = -1;
+    mat[2]  = 0;                          mat[6]  = 0;                        mat[10] = -1; mat[14] = 0;
+    mat[3]  = 0;                          mat[7]  = 0;                        mat[11] = 0;  mat[15] = 1;
 }
 
 void Render::identityMat4(float *mat)
 {
-    mat[0] = 1;  mat[1] = 0; mat[2] = 0;  mat[3] = 0;
-    mat[4] = 0;  mat[5] = 1; mat[6] = 0;  mat[7] = 0;
-    mat[8] = 0;  mat[9] = 0; mat[10] = 1; mat[11] = 0;
-    mat[12] = 0; mat[13] = 0;mat[14] = 0; mat[15] = 1;
-}
-
-void Render::center_obj(float *mat)
-{
-    mat[0] = 1;  mat[1] = 0; mat[2] = 0;  mat[3] = 0;
-    mat[4] = 0;  mat[5] = 1; mat[6] = 0;  mat[7] = 0;
-    mat[8] = 0;  mat[9] = 0; mat[10] = 1; mat[11] = 0;
-    mat[12] = 0; mat[13] = 0;mat[14] = -15; mat[15] = 1;
+    mat[0] = 1;  mat[4] = 0; mat[8] = 0;  mat[12] = 0;
+    mat[1] = 0;  mat[5] = 1; mat[9] = 0;  mat[13] = 0;
+    mat[2] = 0;  mat[6] = 0; mat[10] = 1; mat[14] = 0;
+    mat[3] = 0;  mat[7] = 0; mat[11] = 0; mat[15] = 1;
 }
 
 void Render::translate_obj(float *mat)
 {
-    mat[0] = 1; mat[1] = 0; mat[2] = 0; mat[3] = 0;
-    mat[4] = 0; mat[5] = 1; mat[6] = 0; mat[7] = 0;
-    mat[8] = 0; mat[9] = 0; mat[10] = 1; mat[11] = 0;
-    mat[12] = _tX;
-    mat[13] = _tY;
-    mat[14] = _tZ;
-    mat[15] = 1;
+    mat[0] = 1; mat[4] = 0; mat[8] = 0;   mat[12] = _tX;
+    mat[1] = 0; mat[5] = 1; mat[9] = 0;   mat[13] = _tY;
+    mat[2] = 0; mat[6] = 0; mat[10] = 1;  mat[14] = _tZ;
+    mat[3] = 0; mat[7] = 0; mat[11] = 0;  mat[15] = 1;
 }
 
-void	Render::lookAt(float *mat, float eyeX, float eyeY, float eyeZ,
-                        float centerX, float centerY, float centerZ,
-                        float upX, float upY, float upZ)
+void Render::lookAt(float *mat,
+                    float eyeX, float eyeY, float eyeZ,
+                    float centerX, float centerY, float centerZ,
+                    float upX, float upY, float upZ)
 {
     float f[3] = {
         centerX - eyeX,
@@ -127,30 +120,27 @@ void	Render::lookAt(float *mat, float eyeX, float eyeY, float eyeZ,
         s[0]*f[1] - s[1]*f[0]
     };
 
-    mat[0] = s[0]; mat[1] = u[0]; mat[2] = -f[0]; mat[3] = 0;
-    mat[4] = s[1]; mat[5] = u[1]; mat[6] = -f[1]; mat[7] = 0;
-    mat[8] = s[2]; mat[9] = u[2]; mat[10] = -f[2]; mat[11] = 0;
-    mat[12] = -(s[0]*eyeX + s[1]*eyeY + s[2]*eyeZ);
-    mat[13] = -(u[0]*eyeX + u[1]*eyeY + u[2]*eyeZ);
-    mat[14] =  (f[0]*eyeX + f[1]*eyeY + f[2]*eyeZ);
-    mat[15] = 1;
+    mat[0] = s[0];  mat[4] = s[1];  mat[8] = s[2];      mat[12] = -(s[0]*eyeX + s[1]*eyeY + s[2]*eyeZ);
+    mat[1] = u[0];  mat[5] = u[1];  mat[9] = u[2];      mat[13] = -(u[0]*eyeX + u[1]*eyeY + u[2]*eyeZ);
+    mat[2] = -f[0]; mat[6] = -f[1]; mat[10] = -f[2];    mat[14] =  (f[0]*eyeX + f[1]*eyeY + f[2]*eyeZ);
+    mat[3] = 0;     mat[7] = 0;     mat[11] = 0;        mat[15] = 1;
 }
+
 
 void Render::multiply4(float *a, float *b, float *result)
 {
-	for (int i = 0; i < 4; ++i)
-	{
-		for (int j = 0; j < 4; ++j)
-		{
-			result[i*4 + j] =
-				a[i * 4 + 0] * b[0 * 4 + j] +
-				a[i * 4 + 1] * b[1 * 4 + j] +
-				a[i * 4 + 2] * b[2 * 4 + j] +
-				a[i * 4 + 3] * b[3 * 4 + j];
-		}
-	}
+	 for (int i = 0; i < 4; ++i)
+    {
+        for (int j = 0; j < 4; ++j)
+        {
+            result[i + j*4] =
+                a[0 + j*4] * b[i + 0*4] +
+                a[1 + j*4] * b[i + 1*4] +
+                a[2 + j*4] * b[i + 2*4] +
+                a[3 + j*4] * b[i + 3*4];
+        }
+    }
 }
-
 
 void Render::mouseCalculs(double posX, double posY, double &lastX, double &lastY, double sentitivity)
 {
@@ -174,7 +164,7 @@ void Render::mouseCalculs(double posX, double posY, double &lastX, double &lastY
 	offsetY *= sentitivity;
 
 	_angleX += offsetX;
-	_angleY += offsetY;
+	_angleY -= offsetY;
 
 	if (_angleY > 89 * (M_PI / 180))
 		_angleY = 89 * (M_PI / 180);
@@ -538,41 +528,50 @@ void Render::moveGizmo(double &lastX, double &lastY)
     double mouseX, mouseY;
     Entity *obj = Gizmo::getObj();
     auto pos = obj->getMesh().getPos();
+    auto vert = Gizmo::getGizmo()[3].getMesh().getVertices();
     std::array<double,3> axis = {0, 0, 0}, axisWorld;
     int index = Gizmo::getArrPos()[3];
 
     if (index-- == 0)
         return ;
     axis[index] = 1.0;
-
     glfwGetCursorPos(Opengl::getWindow(), &mouseX, &mouseY);
 
     double dx = mouseX - lastX;
     double dy = -( mouseY - lastY);
 
     std::array<double, 3> center = {pos[0], pos[1], pos[2]},
-                          tip = {center[0] + axis[0], center[1] + axis[1], center[2] + axis[2]}, vecPos, vec;
+                          tip = {pos[0] + vert[0], pos[1] + vert[1], pos[2] + vert[2]};
    
-	Gizmo::getGizmo()[3].projectArrow(center, tip);
-   
-    center[0] = (center[0] * 0.5 + 0.5) * Opengl::getWidth();
-    center[1] = (center[1] * 0.5 + 0.5) * Opengl::getHeight();
-    tip[0] = (tip[0] * 0.5 + 0.5) * Opengl::getWidth();
-    tip[1] = (tip[1] * 0.5 + 0.5) * Opengl::getHeight();
+    std::cout << RED "before anything: \n" RESET;
+    std::cout << "center = " << center[0] << ", " << center[1] << ", " << center[2] << std::endl;
+    std::cout << "tip = " << tip[0] << ", " << tip[1] << ", " << tip[2] << std::endl;
+	if (Gizmo::getGizmo()[3].projectArrow(center, tip))
+        return ;
 
-   
+    std::cout << YELLOW "before : \n" RESET;
+    std::cout << "center = " << center[0] << ", " << center[1] << std::endl;
+    std::cout << "tip = " << tip[0] << ", " << tip[1] << std::endl;
+    center[0] = (center[0] + 1) * (Opengl::getWidth() / 2);
+    center[1] = (center[1] + 1) * (Opengl::getHeight() / 2);
+    tip[0] = (tip[0] + 1) * (Opengl::getWidth() / 2);
+    tip[1] = (tip[1] + 1) * (Opengl::getHeight() / 2);
+    std::cout << PINK "after : \n" RESET;
+    std::cout << "center = " << center[0] << ", " << center[1] << std::endl;
+    std::cout << "tip = " << tip[0] << ", " << tip[1] << std::endl;
     double axisScreenX = tip[0] - center[0];
     double axisScreenY = tip[1] - center[1];
-    std::cout << axisScreenX << ", " << axisScreenY << std::endl;
+    
     double len = sqrt(axisScreenX*axisScreenX + axisScreenY*axisScreenY);
     if (len < 1e-9)
         return;
     axisScreenX /= len;
     axisScreenY /= len;
 
-    double moveAmount = (dx*axisScreenX + dy*axisScreenY) * 0.01;
-    if (!moveAmount)
-        return ;
+    // if (fabs(dx * axisScreenY - dy * axisScreenX) > 15)
+    //     return ;
+
+    double moveAmount = (dx*axisScreenX + dy*axisScreenY) * 0.02;
     obj->turnAxis(axis, axisWorld);
 
     double gx = axisWorld[0], gy = axisWorld[1], gz = axisWorld[2];

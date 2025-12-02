@@ -140,10 +140,10 @@ void	Entity::scale(float *mat) const
 		scaleY *= tmp;
 		scaleZ *= tmp;
 	}
-	mat[0]  = scaleX;		mat[1]  = 0;			mat[2]  = 0;			mat[3]  = 0;
-	mat[4]  = 0;			mat[5]  = scaleY;		mat[6]  = 0;			mat[7]  = 0;
-	mat[8]  = 0;			mat[9]  = 0;			mat[10] = scaleZ;		mat[11] = 0;
-	mat[12] = 0;			mat[13] = 0;			mat[14] = 0;			mat[15] = 1;
+	mat[0] = scaleX; mat[4] = 0;      mat[8]  = 0;      mat[12] = 0;
+	mat[1] = 0;      mat[5] = scaleY; mat[9]  = 0;      mat[13] = 0;
+	mat[2] = 0;      mat[6] = 0;      mat[10] = scaleZ; mat[14] = 0;
+	mat[3] = 0;      mat[7] = 0;      mat[11] = 0;      mat[15] = 1;
 }
 
 void	Entity::rotate_y(float *mat) const
@@ -154,10 +154,10 @@ void	Entity::rotate_y(float *mat) const
 	float cosA = cosf(angle);
 	float sinA = sinf(angle);
 
-	mat[0]  = cosA; mat[1]  = 0; mat[2]  = -sinA; mat[3]  = 0;
-	mat[4]  = 0;    mat[5]  = 1; mat[6]  = 0;     mat[7]  = 0;
-	mat[8]  = sinA; mat[9]  = 0; mat[10] = cosA;  mat[11] = 0;
-	mat[12] = 0;    mat[13] = 0; mat[14] = 0;     mat[15] = 1;
+	mat[0] = cosA;  mat[4] = 0; mat[8]  = sinA; mat[12]  = 0;
+	mat[1] = 0;     mat[5] = 1; mat[9]  = 0;    mat[13]  = 0;
+	mat[2] = -sinA; mat[6] = 0; mat[10] = cosA; mat[14] = 0;
+	mat[3] = 0;		mat[7] = 0;	mat[11] = 0;    mat[15] = 1;
 }
 
 void	Entity::rotate_x(float *mat) const
@@ -168,10 +168,10 @@ void	Entity::rotate_x(float *mat) const
 	float cosA = cosf(angle);
 	float sinA = sinf(angle);
 
-	mat[0]  = 1; mat[1]  = 0;    mat[2]  = 0;	  mat[3]  = 0;
-	mat[4]  = 0; mat[5]  = cosA; mat[6]  = -sinA; mat[7]  = 0;
-	mat[8]  = 0; mat[9]  = sinA; mat[10] = cosA;  mat[11] = 0;
-	mat[12] = 0; mat[13] = 0;	 mat[14] = 0;     mat[15] = 1;
+	mat[0] = 1; mat[4]  = 0;    mat[8]  = 0;	 mat[12]  = 0;
+	mat[1] = 0; mat[5]  = cosA; mat[9]  = -sinA; mat[13]  = 0;
+	mat[2] = 0; mat[6]  = sinA; mat[10] = cosA;  mat[14] = 0;
+	mat[3] = 0;	mat[7] = 0;		mat[11] = 0;     mat[15] = 1;
 }
 
 void	Entity::rotate_z(float *mat) const
@@ -182,10 +182,10 @@ void	Entity::rotate_z(float *mat) const
 	float cosA = cosf(angle);
 	float sinA = sinf(angle);
 
-	mat[0]  = cosA;	mat[1]  = -sinA; mat[2]  = 0;	mat[3]  = 0;
-	mat[4]  = sinA;	mat[5]  = cosA;  mat[6]  = 0;	mat[7]  = 0;
-	mat[8]  = 0;	mat[9]  = 0;	 mat[10] = 1;	mat[11] = 0;
-	mat[12] = 0;	mat[13] = 0;	 mat[14] = 0;	mat[15] = 1;
+	mat[0] = cosA;	mat[4] = -sinA; mat[8]  = 0; mat[12] = 0;
+	mat[1] = sinA;	mat[5] = cosA;  mat[9]  = 0; mat[13] = 0;
+	mat[2] = 0;		mat[6] = 0;	 	mat[10] = 1; mat[14] = 0;
+	mat[3] = 0;		mat[7] = 0;		mat[11] = 0; mat[15] = 1;
 }
 
 void	Entity::setPos(float x, float y, float z)
@@ -250,20 +250,18 @@ void Entity::turnAxis(std::array<double, 3> center, std::array<double, 3> &tip)
 		tip = {res[0] / L, res[1] / L, res[2] / L};
 }
 
-void Entity::projectArrow(std::array<double, 3> &center, std::array<double, 3> &tip)
+int Entity::projectArrow(std::array<double, 3> &center, std::array<double, 3> &tip)
 { 
 	float rotX[16], rotY[16], rotZ[16];
     float worldRotX[16], worldRotY[16], worldRotZ[16];
     float translate[16], wTranslate[16], scale[16];
 	float temp[16], temp2[16], locModel[16], wModel[16];
     float projection[16], camera[16];
-	std::array<double, 3> res;
+	std::array<double, 4> res;
 
     Render::translate_obj(wTranslate);
-	Render::identityMat4(translate);
-	translate[12] = Gizmo::getPos()[0];
-	translate[13] = Gizmo::getPos()[1];
-	translate[14] = Gizmo::getPos()[2];
+
+	std::cout << GREEN "pos = " << Gizmo::getPos()[0] << ", " << Gizmo::getPos()[1] << ", " << Gizmo::getPos()[2] << RESET << std::endl;
 
 	this->rotate_x(rotX);
 	this->rotate_y(rotY);
@@ -279,32 +277,48 @@ void Entity::projectArrow(std::array<double, 3> &center, std::array<double, 3> &
 
 	Render::multiply4(rotY, rotX, temp);
 	Render::multiply4(rotZ, temp, temp2);
-	Render::multiply4(temp2, scale, temp);
-	Render::multiply4(temp, translate, locModel);
+	Render::multiply4(temp2, scale, locModel);
+	//Render::multiply4(temp, translate, locModel);
 
 	Render::multiply4(worldRotY, worldRotX, temp);
 	Render::multiply4(worldRotZ, temp, temp2);
 	Render::multiply4(wTranslate, temp2, wModel);
 	Render::multiply4(wModel, locModel, temp);
+	Render::multiply4(camera, temp, temp2);
+	Render::multiply4(projection, temp2, temp);
 
-	res[0] = temp[0] * center[0] + temp[4] * center[1] + temp[8] * center[2] + temp[12];
-	res[1] = temp[1] * center[0] + temp[5] * center[1] + temp[9] * center[2] + temp[13];
-	res[2] = temp[2] * center[0] + temp[6] * center[1] + temp[10] * center[2] + temp[14];
-	res[3] = temp[3] * center[0] + temp[7] * center[1] + temp[11] * center[2] + temp[15];
+	res[0] = temp[0] * center[0] + temp[1] * center[1] + temp[2] * center[2] + temp[3];
+	res[1] = temp[4] * center[0] + temp[5] * center[1] + temp[6] * center[2] + temp[7];
+	res[2] = temp[8] * center[0] + temp[9] * center[1] + temp[10] * center[2] + temp[11];
+	res[3] = temp[12] * center[0] + temp[13] * center[1] + temp[14] * center[2] + temp[15];
+	// if (res[3] <= 0.0f)
+	// 	return 1;
+	std::cout << BLUE "center clip space :\n" RESET;
+	std::cout << res[0] << ", " << res[1] << ", " << res[2] << ", " << res[3] << std::endl;
 	if (fabs(res[3]) > 1e-9)
 		center = { res[0] / res[3], res[1] / res[3], res[2] / res[3] };
 	else
 		center = { res[0], res[1], res[2] };
-
-	res[0] = temp[0] * tip[0] + temp[4] * tip[1] + temp[8] * tip[2] + temp[12];
-	res[1] = temp[1] * tip[0] + temp[5] * tip[1] + temp[9] * tip[2] + temp[13];
-	res[2] = temp[2] * tip[0] + temp[6] * tip[1] + temp[10] * tip[2] + temp[14];
-	res[3] = temp[3] * tip[0] + temp[7] * tip[1] + temp[11] * tip[2] + temp[15];
+	res[0] = temp[0] * tip[0] + temp[1] * tip[1] + temp[2] * tip[2] + temp[3];
+	res[1] = temp[4] * tip[0] + temp[5] * tip[1] + temp[6] * tip[2] + temp[7];
+	res[2] = temp[8] * tip[0] + temp[9] * tip[1] + temp[10] * tip[2] + temp[11];
+	res[3] = temp[12] * tip[0] + temp[13] * tip[1] + temp[14] * tip[2] + temp[15];
+	// if (res[3] <= 0.0f)
+	// 	return 1;
+	std::cout << BLUE "tip clip space :\n" RESET;
+	std::cout << res[0] << ", " << res[1] << ", " << res[2] << ", " << res[3] << std::endl;
 	if (fabs(res[3]) > 1e-9)
 		tip = { res[0] / res[3], res[1] / res[3], res[2] / res[3] };
 	else
 		tip = { res[0], res[1], res[2] };
+	return 0;
 }
+
+// std::cout << GREEN "matrice: " RESET << std::endl;
+// std::cout << temp[0] << ' ' << temp[4] << ' ' << temp[8] << ' ' << temp[12] << std::endl;
+// std::cout << temp[1] << ' ' << temp[5] << ' ' << temp[9] << ' ' << temp[13] << std::endl;
+// std::cout << temp[2] << ' ' << temp[6] << ' ' << temp[10] << ' ' << temp[14] << std::endl;
+// std::cout << temp[3] << ' ' << temp[7] << ' ' << temp[11] << ' ' << temp[15] << std::endl;
 
 void Entity::drawGizmo(int colorId) const
 {

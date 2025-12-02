@@ -52,6 +52,13 @@ typedef void	(*DELETERENDERBUFFERS)(GLsizei n, const GLuint *renderbuffers);
 typedef void	(*DELETETEXTURES)(GLsizei n, const GLuint *textures);
 typedef void	(*DELETEFRAMEBUFFERS)(GLsizei n, const GLuint *framebuffers);
 
+# define GREEN "\033[32m"
+# define RESET "\033[0m"
+# define YELLOW "\033[33m"
+# define RED "\033[31m"
+# define BLUE "\033[34m"
+# define GRAY "\033[90m"
+# define PINK "\033[35m"
 
 
 class Opengl
@@ -63,6 +70,7 @@ class Opengl
 
 	private:
 		static GLFWwindow	*_window;
+		static GLFWwindow	*_window2;
 		static int			_width;
 		static int			_height;
 
@@ -110,6 +118,7 @@ class Opengl
 
 	public:
 		static GLFWwindow	*getWindow(void);
+		static GLFWwindow	*getWindow2(void);
 		static int			getWidth(void);
 		static int			getHeight(void);
 		static void			setDim(int width, int height);

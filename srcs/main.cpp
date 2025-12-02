@@ -45,7 +45,7 @@ static void	keyGestion(float &x, float &y, float &z)
 	// std::vector<Entity *> objs = Entity::getObjs();
 	// // if (!Menu::getEnableMouse())
 	// // {
-	// 	objs[8]->setRot(z, 0, 0);
+	// 	objs[4]->setRot(z, 0, 0);
 	// 	//x += 0.07;
 	// 	//y += 0.07;
 	// 	z += 0.007;
@@ -162,20 +162,9 @@ int main()
 	Gizmo::genGiz();
 	Hud		hud(&hudS, 0, 0, 500, Opengl::getHeight());
 	Plane(&sol, 0, -1, 0, 0, 0, 0, 50, 1, 100, 0);
-	Plane(&sol, -100, 49, 0, 0, 0, M_PI_4, 100, 1, 100, 0);
-	Entity::getObjs()[1]->setColors(0, 1, 1);
-	Plane(&sol, 100, 49, 0, 0, 0, -M_PI_4, 100, 1, 100, 0);
-	Entity::getObjs()[2]->setColors(0, 1, 1);
-	Plane(&sol, 0, 49, -100, 0, M_PI_2, -M_PI_4, 100, 1, 100, 0);
-	Entity::getObjs()[3]->setColors(0, 1, 1);
-	Plane(&sol, 0, 49, 100, 0, M_PI_2, M_PI_4, 100, 1, 100, 0);
-	Entity::getObjs()[4]->setColors(0, 1, 1);
 	Cone(&base, -10, 5, -10, 0, 0, 0, 10, 10, 10, 0);
 	Cube(&base, 0, 10, 0, M_PI_4, 0, 0, 2, 2, 2, 0);
 	Cube(&base, 10, 5, -10, 0, M_PI / 2, 0, 5, 5, 5, 0);
-	Sphere(&base, 0, 1000, 0, 0, 0, 0, 100, 100, 100, 0);
-	Entity::getObjs()[8]->setColors(1, 1, 0);
-	Entity::getObjs()[8]->setCenter(0, -Entity::getObjs()[8]->getMesh().getPos()[1] / 2, 0);
 	Cube(&base, 10, 5, 10, 0, 0, 0, 8, 8, 8, 0);
 	glfwSetInputMode(Opengl::getWindow(), GLFW_STICKY_KEYS, GL_TRUE);
 	glClearColor(0.4f, 0.4f, 0.4f, 0.0f);
@@ -200,6 +189,7 @@ int main()
 	sol.supr();
 	Opengl::glDeleteFramebuffers(1, &frameBuffer);
 	glfwDestroyWindow(Opengl::getWindow());
+	glfwDestroyWindow(Opengl::getWindow2());
 	glfwTerminate();
 	return (0);
 }
