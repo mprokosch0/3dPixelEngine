@@ -147,8 +147,8 @@ int main()
 		hudS.addBack();
 		textS = Shaders("shaders/vertexShaderHud.glsl", "shaders/fragmentShaderText.glsl");
 		textS.addBack();
-		line = Shaders("shaders/vertexShaderLine.glsl", "shaders/fragmentShaderText.glsl");
-		line.addBack();
+		// line = Shaders("shaders/vertexShaderLine.glsl", "shaders/fragmentShaderText.glsl");
+		// line.addBack();
 	}
 	catch(const std::exception& e)
 	{

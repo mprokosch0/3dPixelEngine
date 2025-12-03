@@ -509,32 +509,80 @@ bool Render::invertMat4(const float m[16], float invOut[16])
     return true;
 }
 
-static bool	unprojectMouse(double x, double y, double z, double &rx, double &ry, double &rz)
+static bool	unprojectMouse(double x, double y, double &rx, double &ry, double &rz, std::array<double, 3> &origin)
 {
-	float	view[16], projection[16], unproj[16], tmp[16], w;
-	std::array<double, 4> co = {x, y, z, 1};
+	float	view[16], projection[16], unproj[16], tmp[16], tmp2[16], w;
+    float worldRotX[16], worldRotY[16], worldRotZ[16], wTranslate[16];
+	std::array<double, 4> coNear = {x, y, -1, 1};
+    std::array<double, 4> coFar = {x, y, 1, 1};
+    std::array<double, 4> res;
 
-	co[0] = (co[0] / Opengl::getWidth()) * 2.0f - 1.0f;
-	co[1] = 1.0f - (co[1] / Opengl::getHeight()) * 2.0f;
-	co[2] = co[2] * 2.0 - 1.0;
+	coFar[0] = coNear[0] = ((2 * x) / Opengl::getWidth()) - 1;
+	coFar[1] = coNear[1] = 1 - ((2 * y) / Opengl::getHeight());
 
 	Render::project_points(projection);
+    Render::translate_obj(wTranslate);
+    Render::rotate_x(worldRotX);
+    Render::rotate_y(worldRotY);
+    Render::rotate_z(worldRotZ);
 	Render::lookAt(view, 0, 0, 0, 0, 0, -1, 0, 1, 0);
-	Render::multiply4(projection, view, tmp);
+    Render::multiply4(worldRotY, worldRotX, tmp);
+    Render::multiply4(worldRotZ, tmp, tmp2);
+    Render::multiply4(wTranslate, tmp2, tmp);
+    Render::multiply4(view, tmp, tmp2);
+	Render::multiply4(projection, tmp2, tmp);
 
 	if (!Render::invertMat4(tmp, unproj))
 		return false;
 	
-	rx = unproj[0] * co[0] + unproj[4] * co[1] + unproj[8] * co[2] + unproj[12] * co[3];
-	ry = unproj[1] * co[0] + unproj[5] * co[1] + unproj[9] * co[2] + unproj[13] * co[3];
-	rz = unproj[2] * co[0] + unproj[6] * co[1] + unproj[10] * co[2] + unproj[14] * co[3];
-	w = unproj[3] * co[0] + unproj[7] * co[1] + unproj[11] * co[2] + unproj[15] * co[3];
+	res[0] = unproj[0] * coNear[0] + unproj[4] * coNear[1] + unproj[8] * coNear[2] + unproj[12] * coNear[3];
+	res[1] = unproj[1] * coNear[0] + unproj[5] * coNear[1] + unproj[9] * coNear[2] + unproj[13] * coNear[3];
+	res[2] = unproj[2] * coNear[0] + unproj[6] * coNear[1] + unproj[10] * coNear[2] + unproj[14] * coNear[3];
+	w = unproj[3] * coNear[0] + unproj[7] * coNear[1] + unproj[11] * coNear[2] + unproj[15] * coNear[3];
 	if (w == 0)
 		return false;
-	rx /= w;
-	ry /= w;
-	rz /= w;
+	res[0] /= w;
+	res[1] /= w;
+	res[2] /= w;
+    coNear = res;
+
+    res[0] = unproj[0] * coFar[0] + unproj[4] * coFar[1] + unproj[8] * coFar[2] + unproj[12] * coFar[3];
+	res[1] = unproj[1] * coFar[0] + unproj[5] * coFar[1] + unproj[9] * coFar[2] + unproj[13] * coFar[3];
+	res[2] = unproj[2] * coFar[0] + unproj[6] * coFar[1] + unproj[10] * coFar[2] + unproj[14] * coFar[3];
+	w = unproj[3] * coFar[0] + unproj[7] * coFar[1] + unproj[11] * coFar[2] + unproj[15] * coFar[3];
+	if (w == 0)
+		return false;
+	res[0] /= w;
+	res[1] /= w;
+	res[2] /= w;
+    coFar = res;
+    origin = {coNear[0], coNear[1], coNear[2]};
+    rx = coFar[0] - coNear[0];
+    ry = coFar[1] - coNear[1];
+    rz = coFar[2] - coNear[2];
+    double len = sqrt(rx*rx + ry*ry + rz*rz);
+    if (len < 1e-9)
+        return false;
+    rx /= len;
+    ry /= len;
+    rz /= len;
 	return true;
+}
+
+static bool getIntersection(const std::array<double, 3> &axis, std::array<double, 3> origin, const std::array<double, 3> &dirCo, std::array<double, 3> &res)
+{
+    double denom = axis[0]*dirCo[0] + axis[1]*dirCo[1] + axis[2]*dirCo[2];
+    if (fabs(denom) < 1e-6)
+        return false;
+    std::array<double, 3> planePoint = {Gizmo::getPos()[0], Gizmo::getPos()[1], Gizmo::getPos()[2]};
+    double num = (planePoint[0] - origin[0]) * axis[0] +
+                 (planePoint[1] - origin[1]) * axis[1] +
+                 (planePoint[2] - origin[2]) * axis[2];
+    float t = num / denom;
+    res[0] = origin[0] + t * dirCo[0];
+    res[1] = origin[1] + t * dirCo[1];
+    res[2] = origin[2] + t * dirCo[2];
+    return true;
 }
 
 void Render::moveGizmo(double &lastX, double &lastY)
@@ -543,57 +591,36 @@ void Render::moveGizmo(double &lastX, double &lastY)
     Entity *obj = Gizmo::getObj();
     auto pos = obj->getMesh().getPos();
     auto vert = Gizmo::getGizmo()[3].getMesh().getVertices();
-    std::array<double,3> axis = {0, 0, 0}, axisWorld;
+    std::array<double,3> axis = {0, 0, 0}, plane = {0, 0, 0}, axisWorld, planeWorld;
     int index = Gizmo::getArrPos()[3];
 
     if (index-- == 0)
         return ;
     axis[index] = 1.0;
-    glfwGetCursorPos(Opengl::getWindow(), &mouseX, &mouseY);
-
-    double dx = mouseX - lastX;
-    double dy = -( mouseY - lastY);
-
-    std::array<double, 3> center = {pos[0], pos[1], -pos[2]},
-                          tip = {pos[0] + vert[0], pos[1] + vert[1], -pos[2] + vert[2]};
-   
-    std::cout << RED "before anything: \n" RESET;
-    std::cout << "center = " << center[0] << ", " << center[1] << ", " << center[2] << std::endl;
-    std::cout << "tip = " << tip[0] << ", " << tip[1] << ", " << tip[2] << std::endl;
-	if (Gizmo::getGizmo()[3].projectArrow(center, tip))
-        return ;
-
-    std::cout << YELLOW "before : \n" RESET;
-    std::cout << "center = " << center[0] << ", " << center[1] << std::endl;
-    std::cout << "tip = " << tip[0] << ", " << tip[1] << std::endl;
-    center[0] = (center[0] + 1) * (Opengl::getWidth() / 2);
-    center[1] = (center[1] + 1) * (Opengl::getHeight() / 2);
-    tip[0] = (tip[0] + 1) * (Opengl::getWidth() / 2);
-    tip[1] = (tip[1] + 1) * (Opengl::getHeight() / 2);
-    std::cout << PINK "after : \n" RESET;
-    std::cout << "center = " << center[0] << ", " << center[1] << std::endl;
-    std::cout << "tip = " << tip[0] << ", " << tip[1] << std::endl;
-
-    double axisScreenX = tip[0] - center[0];
-    double axisScreenY = tip[1] - center[1];
-    
-    double len = sqrt(axisScreenX*axisScreenX + axisScreenY*axisScreenY);
-    if (len < 1e-9)
-        return;
-    axisScreenX /= len;
-    axisScreenY /= len;
-
-    // if (fabs(dx * axisScreenY - dy * axisScreenX) > 15)
-    //     return ;
-
-    double moveAmount = (dx*axisScreenX + dy*axisScreenY) * 0.02;
+    if (axis[0] == 1.0) plane = {0,0,1}; // X → plan XY
+    if (axis[1] == 1.0) plane = {0,0,1}; // Y → plan XY
+    if (axis[2] == 1.0) plane = {0,1,0}; // Z → plan XZ
     obj->turnAxis(axis, axisWorld);
+    obj->turnAxis(plane, planeWorld);
+    glfwGetCursorPos(Opengl::getWindow(), &mouseX, &mouseY);
+    std::array<double, 3> dirLast, originLast, dirM, originM, interLast, interMouse;
 
-    double gx = axisWorld[0], gy = axisWorld[1], gz = axisWorld[2];
-
-    obj->setPos(pos[0] + gx*moveAmount,
-                pos[1] + gy*moveAmount,
-                pos[2] + gz*moveAmount);
+    if (!unprojectMouse(lastX, lastY, dirLast[0], dirLast[1], dirLast[2], originLast))
+        return ;
+    if (!unprojectMouse(mouseX, mouseY, dirM[0], dirM[1], dirM[2], originM))
+        return ;
+    if (!getIntersection(planeWorld, originLast, dirLast, interLast))
+        return ;
+    if (!getIntersection(planeWorld, originM, dirM, interMouse))
+        return ;
+    std::array<double, 3> delta = {interMouse[0] - interLast[0], interMouse[1] - interLast[1], interMouse[2] - interLast[2]};
+    double dot = delta[0]*axisWorld[0] + delta[1]*axisWorld[1] + delta[2]*axisWorld[2];
+    std::array<double, 3> deltaAxis = {dot * axisWorld[0], dot * axisWorld[1], dot * axisWorld[2]};
+    std::cout << "deltaWorld: " << deltaAxis[0] << ", " << deltaAxis[1] << ", " << deltaAxis[2] << std::endl;
+    std::cout << "deltaMouse: " << mouseX - lastX << ", " << mouseY - lastY << std::endl;
+    obj->setPos(pos[0] + deltaAxis[0],
+                pos[1] + deltaAxis[1],
+                pos[2] + deltaAxis[2]);
 
     lastX = mouseX;
     lastY = mouseY;

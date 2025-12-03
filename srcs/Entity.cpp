@@ -283,17 +283,17 @@ int Entity::projectArrow(std::array<double, 3> &center, std::array<double, 3> &t
     Render::project_points(projection);
     Render::lookAt(camera, 0, 0, 0, 0, 0, -1, 0, 1, 0);
 
-	Render::multiply4Correct(rotY, rotX, temp);
-	Render::multiply4Correct(rotZ, temp, temp2);
-	Render::multiply4Correct(temp2, scale, locModel);
+	Render::multiply4(rotY, rotX, temp);
+	Render::multiply4(rotZ, temp, temp2);
+	Render::multiply4(temp2, scale, locModel);
 	//Render::multiply4(temp, translate, locModel);
 
-	Render::multiply4Correct(worldRotY, worldRotX, temp);
-	Render::multiply4Correct(worldRotZ, temp, temp2);
-	Render::multiply4Correct(wTranslate, temp2, wModel);
-	Render::multiply4Correct(wModel, locModel, temp);
-	Render::multiply4Correct(camera, temp, temp2);
-	Render::multiply4Correct(projection, temp2, temp);
+	Render::multiply4(worldRotY, worldRotX, temp);
+	Render::multiply4(worldRotZ, temp, temp2);
+	Render::multiply4(wTranslate, temp2, wModel);
+	Render::multiply4(wModel, locModel, temp);
+	Render::multiply4(camera, temp, temp2);
+	Render::multiply4(projection, temp2, temp);
 
 	res[0] = temp[0] * center[0] + temp[4] * center[1] + temp[8] * center[2] + temp[12];
 	res[1] = temp[1] * center[0] + temp[5] * center[1] + temp[9] * center[2] + temp[13];
