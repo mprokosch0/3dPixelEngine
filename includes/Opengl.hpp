@@ -8,6 +8,8 @@
 # include <exception>
 # include <fstream>
 # include <vector>
+# include "Vec2.hpp"
+# include "Vec3.hpp"
 
 # define WIDTH 1920
 # define HEIGHT 1080
